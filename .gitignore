@@ -38,6 +38,9 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# html 
+*.html
+
 # General
 .DS_Store
 .AppleDouble
