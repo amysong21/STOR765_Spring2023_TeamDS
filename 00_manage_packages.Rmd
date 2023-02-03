@@ -1,0 +1,21 @@
+---
+title: "Manage packages"
+author: "Taebin Kim"
+data: "02/02/2023"
+output: html_notebook
+---
+
+Install and load the package `pacman` for package management. Required 
+packages will be added as we go along.
+
+```{r}
+
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(tidyr,
+       tidyverse,
+       dplyr,
+       ggplot2)
+```
