@@ -11,6 +11,10 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```{r, include=FALSE}
 library(dplyr)
 library(readxl)
+library(naniar)
+library(UpSetR)
+library(ggplot2)
+library(GGally)
 ```
 
 # Load Data
@@ -20,19 +24,210 @@ load("block3_psych_df.RData")
 load("block7_hrv_saa_df.RData")
 ```
 
-# Look at Block 3
+# Block 3 Psych PRofile
+## Missing Data
+### Percentage of Missing Data
 ```{r}
-dim(block3_psych_df)
+vis_miss(block3_psych_df)
+```
+From the plot above, we can see that there is only missing variables for the `STAIPost-Pre` variable of 4%, which 5 out of 130 observations. 
 
-summary(block3_psych_df)
+```{r}
+block3_psych_df[is.na(block3_psych_df$`STAIPost-Pre`),]
+```
+### Exploring the Missing Data Points
+```{r}
+# using  geom_miss_point()
+ggplot(block3_psych_df,
+       aes(x = STAITrait,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(block3_psych_df,
+       aes(x = CogDisScore,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(block3_psych_df,
+       aes(x = Anhedonia,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(block3_psych_df,
+       aes(x = Anhedonia,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+```
+Does not seem to be a clear trend in the missing data points.
+
+```{r}
+gg_miss_var(block3_psych_df, show_pct = TRUE)
+```
+
+## Scatterplot Matrix (Pairs Plots)
+```{r}
+block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
+ggpairs(block3_psych_df[,2:6])
+
+ggcorr(block3_psych_df[,2:6])
+
 ```
 
 
 
-# Look at Block 3
-Summary as to variable names, number of rows, ranges, etc. 
-```{r}
-dim(block7_hrv_saa_df)
 
-summary(block7_hrv_saa_df)
+## PCA scatterplot matrix and Scree Plots
+
+# Block 7 HRV SAA
+## Missing Data
+### Percentage of Missing Data
+```{r}
+vis_miss(block7_hrv_saa_df[,1:10])
 ```
+
+Missing data points is a significant issue in Block 7. Missing data appears in $47.3%$ of the data. The `SAA` variables seem to have a high number of missing values with over $50%$ for all `AA` variables. For the `HRV_MIST` variables have a missing rate all over $40%$
+
+### Exploring the Patterns of Missing Data
+```{r}
+gg_miss_upset(block7_hrv_saa_df[,2:10], nsets = n_var_miss(block7_hrv_saa_df))
+
+```
+From the full missing data, 53 data points do not have any data inputs. Just considering the `SAA` variables 26 data points do not have any information about `SAA`. For `HRV` there are 7 data points.
+
+```{r}
+gg_miss_upset(block7_hrv_saa_df[,2:4])
+```
+Out of the `HRV`, `HRV_MIST3` has the most missing values. There are 68 cases where all 3 variables are missing, 7 of `HRV_MIST2` and `HRV_MIST3` missing, 2 of `HRV_MIST1` and `HRV_MIST2`, and 1 of `HRV_MIST1` and `HRV_MIST3`.
+
+```{r}
+gg_miss_upset(block7_hrv_saa_df[,5:10])
+```
+There are 87 instances of all `SAA` variables missing. Other combinations of missing data are relatively smaller compared to data sets with all missing points.
+
+
+### Exploring the Missing Data Points
+```{r}
+# using  geom_miss_point()
+ggplot(block7_hrv_saa_df,
+       aes(x = HRV_MIST1,
+           y = HRV_MIST2)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = HRV_MIST1,
+           y = HRV_MIST3)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = HRV_MIST2,
+           y = HRV_MIST3)) +
+ geom_miss_point()
+```
+```{r}
+# using  geom_miss_point()
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S1,
+           y = AA_S2)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S1,
+           y = AA_S3)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S1,
+           y = AA_S4)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S1,
+           y = AA_S5)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S1,
+           y = AA_S6)) +
+ geom_miss_point()
+
+##2
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S2,
+           y = AA_S3)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S2,
+           y = AA_S4)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S2,
+           y = AA_S5)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S2,
+           y = AA_S6)) +
+ geom_miss_point()
+
+##3
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S3,
+           y = AA_S4)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S3,
+           y = AA_S5)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S3,
+           y = AA_S6)) +
+ geom_miss_point()
+
+## 4
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S4,
+           y = AA_S5)) +
+ geom_miss_point()
+
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S4,
+           y = AA_S6)) +
+ geom_miss_point()
+
+##5
+ggplot(block7_hrv_saa_df,
+       aes(x = AA_S5,
+           y = AA_S6)) +
+ geom_miss_point()
+```
+
+```{r}
+gg_miss_var(block7_hrv_saa_df, show_pct = TRUE)
+```
+
+## Scatterplot Matrix (Pairs Plots)
+```{r}
+block7_hrv_saa_df[, 2:10] <- lapply(block7_hrv_saa_df[, 2:10], as.numeric)
+ggpairs(block7_hrv_saa_df[,2:10])
+ggcorr(block7_hrv_saa_df[,2:10])
+
+```
+
+```{r}
+ggpairs(block7_hrv_saa_df[,2:4])
+ggcorr(block7_hrv_saa_df[,2:4])
+```
+
+```{r}
+ggpairs(block7_hrv_saa_df[,5:10])
+ggcorr(block7_hrv_saa_df[,5:10]) 
+```
+
+
