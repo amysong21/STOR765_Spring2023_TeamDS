@@ -1,5 +1,5 @@
 ---
-title: "01_make_data"
+title: "02_EDA_Block_3_7"
 author: "SooHyun Kim"
 date: "2023-04-07"
 output: html_document
@@ -13,19 +13,7 @@ library(dplyr)
 library(readxl)
 ```
 
-# Read Data
-```{r}
-# block3_psych_df <- read_excel("C:/Users/SooHyun Sam Kim/Downloads/cognit_stor765_data.xlsx", sheet = "PsychProfile_block3")
-# block7_hrv_saa_df <- read_excel("C:/Users/SooHyun Sam Kim/Downloads/cognit_stor765_data.xlsx", sheet = "HRV_SAA_block7")
-```
-
-# Save Data
-```{r}
-# save(block3_psych_df, file = "block3_psych_df.RData")
-# save(block7_hrv_saa_df, file = "block7_hrv_saa_df.RData")
-```
-
-# Reload Data
+# Load Data
 From here we will only look at the Prostate Data
 ```{r}
 load("block3_psych_df.RData")
