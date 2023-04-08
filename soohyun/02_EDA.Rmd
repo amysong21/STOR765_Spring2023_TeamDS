@@ -15,6 +15,9 @@ library(naniar)
 library(UpSetR)
 library(ggplot2)
 library(GGally)
+library(missMDA)
+library(FactoMineR)
+
 ```
 
 # Load Data
@@ -28,12 +31,15 @@ load("block7_hrv_saa_df.RData")
 ## Missing Data
 ### Percentage of Missing Data
 ```{r}
+block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
 vis_miss(block3_psych_df)
 ```
-From the plot above, we can see that there is only missing variables for the `STAIPost-Pre` variable of 4%, which 5 out of 130 observations. 
+From the plot above, we can see that for variable `STAIPost-Pre` variable of 4%, which 5 out of 130 observations. We can also check that `STAITrait` jas 4 missing values. 
 
 ```{r}
 block3_psych_df[is.na(block3_psych_df$`STAIPost-Pre`),]
+
+sum(is.na(block3_psych_df$STAITrait))
 ```
 ### Exploring the Missing Data Points
 ```{r}
@@ -64,12 +70,12 @@ ggplot(block3_psych_df,
 Does not seem to be a clear trend in the missing data points.
 
 ```{r}
-gg_miss_var(block3_psych_df, show_pct = TRUE)
+gg_miss_var(block3_psych_df)
 ```
 
 ## Scatterplot Matrix (Pairs Plots)
 ```{r}
-block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
+# block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
 ggpairs(block3_psych_df[,2:6])
 
 ggcorr(block3_psych_df[,2:6])
@@ -77,9 +83,41 @@ ggcorr(block3_psych_df[,2:6])
 ```
 
 
-
-
 ## PCA scatterplot matrix and Scree Plots
+```{r}
+apply(block3_psych_df[,2:6], 2, mean)
+apply(block3_psych_df[,2:6], 2, var)
+
+
+# Replace missing value with the mean
+block3_psych_df2 <- block3_psych_df
+block3_psych_df2$STAITrait[is.na(block3_psych_df$STAITrait)] <- mean(block3_psych_df$STAITrait, na.rm=TRUE)
+
+block3_psych_df2$`STAIPost-Pre`[is.na(block3_psych_df$`STAIPost-Pre`)] <- mean(block3_psych_df$`STAIPost-Pre`, na.rm=TRUE)
+```
+
+
+```{r}
+block3_pr_out <- prcomp(block3_psych_df2[,2:6], scale=TRUE, center=TRUE)
+
+# Scree plot
+screeplot(block3_pr_out, main = "Scree Plot")
+
+block3_var <- block3_pr_out$sdev^2
+block3_pve <- block3_var/sum(block3_var)
+plot(block3_pve, xlab="Principal Component", ylab="Proprotion of Variance Explained",
+     ylim=c(0,1), type="b")
+  
+
+
+# Scatterplot matrix with principal components
+block3_pca_df <- data.frame(block3_pr_out$x)
+ggplot(data = block3_pca_df, aes(x = PC1, y = PC2)) +
+  geom_point(alpha = 0.5) +
+  labs(x = "PC1", y = "PC2", title = "PCA Scatterplot Matrix")
+```
+
+
 
 # Block 7 HRV SAA
 ## Missing Data
@@ -229,5 +267,35 @@ ggcorr(block7_hrv_saa_df[,2:4])
 ggpairs(block7_hrv_saa_df[,5:10])
 ggcorr(block7_hrv_saa_df[,5:10]) 
 ```
+## PCA scatterplot matrix and Scree Plots
+To deal with high missing data points, I refered to http://juliejosse.com/wp-content/uploads/2018/05/DataAnalysisMissingR.html#pca_with_missing_values
 
+```{r}
+# estimate the number of components from incomplete data
+nb <- estim_ncpPCA(block7_hrv_saa_df[,2:10], method.cv = "Kfold", verbose = FALSE) 
+
+nb$ncp
+
+# Impute the missing data
+block7_impute <- imputePCA(block7_hrv_saa_df[,2:10], ncp = nb$ncp) # iterativePCA algorithm
+block7_impute$completeObs[1:3,] # the imputed data set
+
+# PCA
+block7_pca <- prcomp(block7_impute$completeObs, scale=TRUE, center=TRUE)
+# block7_pca2 <- PCA(block7_impute$completeObs, ncp = 2)
+
+# Plot scree plot
+screeplot(block7_pca, main = "Scree Plot")
+
+block7_var <- block7_pca$sdev^2
+block7_pve <- block7_var/sum(block7_var)
+plot(block7_pve, xlab="Principal Component", ylab="Proprotion of Variance Explained",
+     ylim=c(0,1), type="b")
+
+# Scatterplot matrix with principal components
+block7_pca_plot <- data.frame(block7_pca$x)
+ggplot(data = block7_pca_plot, aes(x = PC1, y = PC2)) +
+  geom_point(alpha = 0.5) +
+  labs(x = "PC1", y = "PC2", title = "PCA Scatterplot Matrix")
+```
 
