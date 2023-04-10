@@ -1,0 +1,70 @@
+---
+title: "01_make_data"
+author: "KyungjinSohn"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib, include=FALSE}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(readxl,
+       dplyr)
+```
+
+## Demographics data
+```{r df_read}
+demographics_df <- read_excel("./source_data/cognit_stor765_data.xlsx", sheet = "Demographics_block5")
+```
+
+The dataset includes demographic information for 130 subjects and consists of 6 variables.
+```{r df_dim}
+dim(demographics_df)
+```
+
+We have 6 different types of variables for each subject: Subject ID, sex, age in months, own puberty level, parent's puberty level, and average parent education.
+```{r df_str}
+str(demographics_df)
+```
+
+### 1) ID
+No subject IDs are duplicated. 
+```{r}
+# 1. Subject ID
+table(duplicated(demographics_df$Subject))
+```
+
+### 2) Sex
+Next, we changed the Sex variable to a factor type variable.
+```{r}
+# 2. Sex
+demographics_df <- demographics_df %>% 
+     mutate(Sex = factor(Sex, levels = c("M", "F")))
+str(demographics_df$Sex)
+```
+
+### 3) Age In Months
+Since we only had the age in months, we added a new column to show the age in years rounded to the second decimal place.
+```{r}
+# 3. Age in Months
+demographics_df <- demographics_df %>% 
+     mutate(AgeInYears = round(AgeInMonths/12, 2)) %>% 
+     relocate(AgeInYears, .after = AgeInMonths)
+```
+
+### 4 ~ 6) Own puberty level, Parent's puberty level, and Average parent education
+The own puberty level variable ranges from 1 to 5, with 29 missing values. The parent's puberty level variable also ranges from 1 to 5, with 21 missing values. Lastly, the average parent education variable ranges from 1 to 9, with 6 missing values.
+```{r df_sum}
+summary(demographics_df)
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save}
+save(demographics_df, file = "./demographics_df.RData")
+```
