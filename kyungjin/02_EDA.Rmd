@@ -1,0 +1,74 @@
+---
+title: "02_EDA"
+author: "KyungjinSohn"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib, include=FALSE}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(naniar,
+       ggplot2,
+       tidyr,
+       dplyr,
+       GGally)
+```
+
+```{r read}
+load("./demographics_df.RData")
+```
+
+## Demographics data
+
+### 1. Missing data
+
+There are missing values in the Own puberty level, Parent's puberty level, and Average parent education variables. Specifically, 22% of the observations have missing values for Own puberty level, 16% are missing for Parent's puberty level, and 5% of the Average parent education variable is missing.
+
+```{r heatmap, fig.align='center', fig.width=9, fig.height=7}
+vis_miss(demographics_df) + 
+     theme(axis.text.x = element_text(angle = 75)) +
+     labs(title = "Heatmap of missing data in the demographics")
+```
+
+To be specific, 29 observations for Own puberty level, 21 observations for Parent's puberty level, and 6 observations for Average parent education variable are missing.
+```{r}
+sapply(demographics_df, function(x) sum(is.na(x)))
+```
+
+One subject (`cnt_277_bl`) has missing values for all three variables.
+```{r na3}
+allNA <- which(apply(demographics_df, MARGIN = 1, function(x) sum(is.na(x))) == 3)
+demographics_df[allNA,]
+```
+
+Additionally, there are 9 subjects who have two missing values among the three columns. Of these 9 subjects, 6 have two missing values in the two puberty level columns, and 3 have two missing values in both the Parental puberty level and Parental education average columns.
+```{r na1}
+twoNA <- which(apply(demographics_df, MARGIN = 1, function(x) sum(is.na(x))) == 2)
+demographics_df[twoNA,]
+```
+
+If we remove observations with at least one missing value, there are 85 subjects remaining.
+```{r}
+nrow(demographics_df %>% drop_na(.))
+```
+
+### 2. Associations among variables
+
+* There are more male subjects than female.
+* The Age, Own puberty level, and Parent's puberty level variables are fairly spread out.
+* The Average parent education level variable is left-skewed, with most values ranging between 6 to 10.
+* Among the dataset, females have a higher average own puberty level than males.
+* There seems to be a strong positive correlation between Age in years and Parent's puberty level.
+* Additionally, there is a high correlation between Own puberty level and Parent's puberty level.
+
+```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+ggpairs(demographics_df, columns = c(2, 4:7), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
