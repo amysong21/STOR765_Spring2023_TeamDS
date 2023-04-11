@@ -29,6 +29,12 @@ load("block7_hrv_saa_df.RData")
 
 # Block 3 Psych PRofile
 ## Missing Data
+### Full Data Points
+```{r}
+dim(block3_psych_df[complete.cases(block3_psych_df),])
+nrow(block3_psych_df[complete.cases(block3_psych_df),])/nrow(block3_psych_df)
+```
+
 ### Percentage of Missing Data
 ```{r}
 block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
@@ -121,6 +127,11 @@ ggplot(data = block3_pca_df, aes(x = PC1, y = PC2)) +
 
 # Block 7 HRV SAA
 ## Missing Data
+### Full Data Points
+```{r}
+dim(block7_hrv_saa_df[complete.cases(block7_hrv_saa_df),])
+nrow(block7_hrv_saa_df[complete.cases(block7_hrv_saa_df),])/nrow(block7_hrv_saa_df)
+```
 ### Percentage of Missing Data
 ```{r}
 vis_miss(block7_hrv_saa_df[,1:10])
