@@ -1,0 +1,56 @@
+---
+title: "02 EDA: Block 2"
+author: "Amy Song"
+date: "02/02/2023"
+output: html_notebook
+---
+
+Setting up libraries that will be used in the EDA.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib, include=FALSE, message = F}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(ggplot2, tidyr, dplyr, GGally, naniar, ggfortify)
+```
+
+Reading the data that was saved in `01_make_data_block2`
+```{r}
+load('./Rdata/fmri_block.Rdata')
+head(fmri_block)
+```
+
+## Missing data
+As shown below, there are no missing data for the fMRI signals for all of the subjects. 
+```{r}
+vis_miss(fmri_block[,2:9])
+```
+
+
+## Scatterplot (pair plots)
+
+```{r, message = F}
+ggpairs(fmri_block[,2:9])
+```
+
+
+## PCA Scatter plot
+
+ 
+```{r}
+fmri_pca <- prcomp(fmri_block[,2:9])
+summary(fmri_pca)
+```
+Plot of the PCA on the first 2 components:
+```{r}
+autoplot(fmri_pca, data = fmri_block[,2:9])
+```
+Plot of PCA: 
+```{r}
+plot(fmri_pca, type = "l")
+```
+

@@ -1,0 +1,48 @@
+---
+title: "01 Make Data: Block 2"
+author: "Amy Song"
+date: "02/02/2023"
+output: html_notebook
+---
+
+Setting up libraries that will be used in reading the data.
+```{r}
+library(dplyr)
+library(tidyverse)
+```
+
+Reading the data from the raw dataset from the client. I will be reading data on signals from fMRI on 4 ROI, regions of interest (sheet name: "ROI_MIST_block2") and correlation of these signals from fMRI ROIs and the status of stress (either pre-stress or post-stress) (sheet name: "ROI_Nback_2vs0_block4"). 
+```{r}
+fmri <- readxl::read_excel('cognit_stor765_data.xlsx', sheet = "ROI_MIST_block2")
+fmri.corr <- readxl::read_excel('cognit_stor765_data.xlsx', sheet = "ROI_Nback_2vs0_block4")
+```
+
+The dimension of the fmri data is shown below: 928 rows and 3 columns, where the names of the columns are the following: "Subject","ROI","MeanPerSigChg". And there are total of 116 unique subjects in the data with 8 unique ROIs. 
+```{r}
+dim(fmri)
+```
+```{r}
+names(fmri)
+```
+```{r}
+length(unique(fmri$Subject))
+```
+
+As the dimensions of the data show, transformation on the data needs to be made. The following transformation of the data leads to the data to have a dimension of 116 rows and 9 columns. 
+```{r}
+fmri_block <- fmri %>% 
+  pivot_wider(names_from = ROI, values_from = MeanPerSigChg)
+head(fmri_block)
+dim(fmri_block)
+```
+The transformed data will be saved as a `Rdata` formt in Rdata folder. 
+```{r}
+save(fmri_block, file = "./Rdata/fmri_block.Rdata")
+```
+
+
+The correlation matrix of 
+```{r}
+dim(fmri.corr)
+```
+

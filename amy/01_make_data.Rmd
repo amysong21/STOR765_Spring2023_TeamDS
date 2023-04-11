@@ -1,7 +1,0 @@
----
-title: "Make data"
-author: "Amy Song"
-date: "02/02/2023"
-output: html_notebook
----
-
