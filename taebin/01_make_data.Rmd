@@ -1,0 +1,34 @@
+---
+title: "Make Data"
+author: "Taebin Kim"
+date: "2023-04-11"
+output: html_document
+---
+
+```{r}
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext = ".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output = tmp_file)
+  source(file = tmp_file, ...)
+}
+
+source_rmd("../00_manage_packages.Rmd")
+```
+
+First, we load raw Working Memory data and create a wide dataframe.
+```{r}
+wm_df_raw <- readxl::read_excel("RData/cognit_stor765_data.xlsx",
+                        sheet = "ROI_Nback_2vs0_block4")
+# make long data wide
+wm_df <- tidyr::pivot_wider(wm_df_raw, names_from = c("ROI", "Status"),
+                         values_from = "Mean")
+wm_df <- wm_df %>%
+  remove_rownames %>%
+  column_to_rownames(var="Subject")
+```
+
+Save the processed data in the RData directory.
+```{r}
+save(wm_df, file = "RData/wm_df.Rdata")
+```

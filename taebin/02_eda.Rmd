@@ -1,0 +1,39 @@
+---
+title: "EDA"
+author: "Taebin Kim"
+date: "2023-04-11"
+output: html_document
+---
+
+```{r}
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext = ".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output = tmp_file)
+  source(file = tmp_file, ...)
+}
+
+source_rmd("../00_manage_packages.Rmd")
+```
+
+Load saved Working Memory data.
+```{r}
+load("RData/wm_df.Rdata")
+```
+
+```{r}
+# check missing data
+vis_miss(wm_df) # no missing data
+```
+
+```{r}
+# scatterplot matrix
+GGally::ggpairs(wm_df)
+GGally::ggcorr(wm_df)
+wm_corr_matrix <- cor(wm_df)
+ggcorrplot(wm_corr_matrix)
+wm_df_pca <- princomp(wm_corr_matrix)
+factoextra::fviz_eig(wm_df_pca, addlabels = TRUE)
+wm_pc_scores <- data.frame(wm_df_pca$scores[,1:3])
+GGally::ggpairs(wm_pc_scores)
+```

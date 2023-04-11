@@ -8,8 +8,7 @@ output: html_notebook
 Install and load the package `pacman` for package management. Required 
 packages will be added as we go along.
 
-```{r}
-
+```{r setup, include=FALSE}
 if (!require("pacman")) {
   install.packages("pacman")
   library(pacman)
@@ -17,5 +16,13 @@ if (!require("pacman")) {
 p_load(tidyr,
        tidyverse,
        dplyr,
-       ggplot2)
+       ggplot2,
+       readxl,
+       naniar,
+       GGally,
+       ggcorrplot,
+       FactoMineR,
+       factoextra,
+       CJIVE,
+       reshape2)
 ```
