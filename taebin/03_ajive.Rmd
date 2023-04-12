@@ -16,6 +16,11 @@ source_rmd = function(file, ...) {
 source_rmd("../00_manage_packages.Rmd")
 ```
 
+```{r}
+devtools::install_github("taebinkim7/r_jive")
+library(ajive)
+```
+
 Load saved Working Memory data.
 ```{r}
 load("RData/wm_df.Rdata")
@@ -62,9 +67,18 @@ GGally::ggpairs(wm_pc_scores)
 ```
 
 ```{r}
-df_list <- list(cortisol_df_inter, wm_df_inter)
+data_blocks <- list(as.matrix(cortisol_df_inter), as.matrix(wm_df_inter))
 
-jive <- CJIVE::sjive(df_list, signal_ranks = c(3, 4), joint.rank = 2)
+jive <- CJIVE::sjive(data_blocks, signal_ranks = c(3, 4), joint.rank = 2)
+```
+
+```{r}
+initial_signal_ranks <- c(3, 4) # set by looking at scree plots
+jive_results <- ajive::ajive(data_blocks, initial_signal_ranks, 
+                             n_wedin_samples = 100, n_rand_dir_samples = 100)
+
+# estimated joint rank
+jive_results$joint_rank
 ```
 
 ```{r}
