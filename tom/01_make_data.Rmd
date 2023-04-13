@@ -1,0 +1,46 @@
+---
+title: "01_make_data"
+author: "Tom Keefe"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib, include=FALSE}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(readxl,
+       dplyr)
+```
+
+## Cortisol data
+```{r df_read}
+cortisol_block <- read_excel("./source_data/cognit_stor765_data.xlsx", 
+                              sheet = "Cortisol_MRI_block1")
+```
+
+We examine the structure of the cortisol block using `str`: 
+
+```{r df_str}
+str(cortisol_block)
+```
+We see that cortisol block contains 118 rows and 7 columns: 
+
+* a patient identifier, _StudyID_, which is a string, e.g. `cnt_101_bl`
+* the cortisol measure at each of six timepoints, _M_S1_, _M_S2_, ..., _M_S6_, which is a nonnegative number.
+
+We check that no patient identifiers are duplicated:
+```{r}
+table(duplicated(cortisol_block$StudyID))
+```
+
+Indeed, none of the 118 values show up more than once. The data should now be ready for EDA, so we save the cortisol block with the following:
+
+```{r save}
+save(cortisol_block, file = "./cortisol_block.RData")
+```
