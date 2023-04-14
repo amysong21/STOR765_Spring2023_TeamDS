@@ -85,6 +85,21 @@ jive_results$joint_rank
 cortisol_joint_scores <- jive$joint_matrices[[1]]$u
 wm_joint_scores <- jive$joint_matrices[[2]]$u
 
+cortisol_joint <- as.data.frame(cortisol_joint_scores)
+wm_joint <- as.data.frame(wm_joint_scores)
+
+cortisol_joint %>%
+  mutate(rn = row_number()) %>% 
+  pivot_longer(cols = -rn) %>%
+  ggplot(aes(x = rn, y = value, color = name)) + 
+       geom_line()
+
+wm_joint %>%
+  mutate(rn = row_number()) %>% 
+  pivot_longer(cols = -rn) %>%
+  ggplot(aes(x = rn, y = value, color = name)) + 
+       geom_line()
+
 joint_1 <- as.data.frame(
   cbind(cortisol_joint_scores[, 1], wm_joint_scores[, 1]))
 

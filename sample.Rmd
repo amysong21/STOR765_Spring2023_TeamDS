@@ -1,0 +1,17 @@
+---
+title: "Sample"
+author: "Taebin Kim"
+date: "2023-04-11"
+output: html_document
+---
+
+```{r}
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext = ".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output = tmp_file)
+  source(file = tmp_file, ...)
+}
+
+source_rmd("00_manage_packages.Rmd")
+```

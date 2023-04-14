@@ -1,8 +1,10 @@
 ---
 title: "Manage packages"
 author: "Taebin Kim"
-data: "02/02/2023"
-output: html_notebook
+data: 02/02/2023
+output:
+  html_document:
+    df_print: paged
 ---
 
 Install and load the package `pacman` for package management. Required 
