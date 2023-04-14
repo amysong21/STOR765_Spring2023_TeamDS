@@ -65,7 +65,7 @@ summary(cortisol_df)
 * `M_S4`,`M_S5`, and `M_S6` are highly correlated
 
 
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r b1_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
 ggpairs(cortisol_df, columns = c(2:7), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -85,13 +85,11 @@ summary(fmri_block)
 
 
 ### C. Associations among variables
-### Change
-* All regions are significantly correlated (all over $0.3$)
-* High correlation between `M_S1`,`M_S2`, and `M_S3` all with a correlation above $0.6$
-* `M_S4`,`M_S5`, and `M_S6` are highly correlated
+* The left and the right corresponding regions are positively correlated
+* `vmpfc` is highly correlated with each other. While the right side is correlated with `dlpfc` and the `hippo` on the right side of the brain, the left side of the `vmpfc` is only correlated with the right side of the `vmpfc`
+* `hippo_R_stor` is positively correlated with `amyg` on either side. While `hippo_L_stor` is highly correlated with both `hippo` and `dlpfc` on either side
 
-
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r b2_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=11}
 ggpairs(fmri_block, columns = c(2:9), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -100,6 +98,8 @@ ggpairs(fmri_block, columns = c(2:9),
 ### A. Missing Data
 * Out of 130 observations 8 rows have at least one missing input.
 ```{r}
+block3_psych_df[, 2:6] <- lapply(block3_psych_df[, 2:6], as.numeric)
+
 nrow(block3_psych_df[complete.cases(block3_psych_df),])/nrow(block3_psych_df)
 nrow(block3_psych_df) - nrow(block3_psych_df[complete.cases(block3_psych_df),])
 ```
@@ -152,19 +152,18 @@ block3_psych_df2 <- block3_psych_df %>%  drop_na(.)
 ```
 
 ### B. Summary of variables
+
 ```{r}
 summary(block3_psych_df)
 ```
 
 
 ### C. Associations among variables
-### Change
-* All regions are significantly correlated (all over $0.3$)
-* High correlation between `M_S1`,`M_S2`, and `M_S3` all with a correlation above $0.6$
-* `M_S4`,`M_S5`, and `M_S6` are highly correlated
+
+* All the variables have a positive correlation except `STAIPost-Pre`.
 
 
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r b3_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
 ggpairs(block3_psych_df, columns = c(2:6), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -178,7 +177,7 @@ nrow(demographics_df[complete.cases(demographics_df),])/nrow(demographics_df)
 nrow(demographics_df) - nrow(demographics_df[complete.cases(demographics_df),])
 ```
 
-```{r heatmap, fig.align='center', fig.width=9, fig.height=7}
+```{r demo_heatmap, fig.align='center', fig.width=9, fig.height=7}
 vis_miss(demographics_df) + 
      theme(axis.text.x = element_text(angle = 75)) +
      labs(title = "Heatmap of Missing Data in the Demographics")
@@ -203,7 +202,7 @@ demographics_df[twoNA,]
 
 #### Exploring the Missing Data Points
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 gg_miss_upset(demographics_df[,2:7], nsets = n_var_miss(demographics_df))
 ```
 
@@ -247,7 +246,7 @@ summary(demographics_df)
 * There seems to be a strong positive correlation between Age in years and Parent's puberty level.
 * Additionally, there is a high correlation between Own puberty level and Parent's puberty level.
 
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r b4_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
 ggpairs(demographics_df, columns = c(2, 4:7), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -259,7 +258,7 @@ ggpairs(demographics_df, columns = c(2, 4:7),
 nrow(block7_hrv_saa_df[complete.cases(block7_hrv_saa_df),])/nrow(block7_hrv_saa_df)
 nrow(block7_hrv_saa_df) - nrow(block7_hrv_saa_df[complete.cases(block7_hrv_saa_df),])
 ```
-```{r heatmap, fig.align='center', fig.width=9, fig.height=7}
+```{r b5_heatmap, fig.align='center', fig.width=9, fig.height=7}
 vis_miss(block7_hrv_saa_df) + 
      theme(axis.text.x = element_text(angle = 75)) +
      labs(title = "Heatmap of Missing Data in the HRV and SAA")
@@ -285,10 +284,10 @@ summary(block7_hrv_saa_df)
 
 ### C. Associations among variables
 
-* The 3 measurements of Heart Rate Varaibility (HRV) is highly correlated with each other.
+* The 3 measurements of Heart Rate Variability (HRV) is highly correlated with each other.
 * All 6 measurements of SAA are highly correlated with each other.
 
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=10}
 ggpairs(block7_hrv_saa_df, columns = c(2:10), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -311,13 +310,18 @@ summary(wm_df)
 
 ### C. Associations among variables
 
-* The 3 measurements of Heart Rate Variability (HRV) is highly correlated with each other.
-* All 6 measurements of SAA are highly correlated with each other.
+* Usually post-working memory has a positive correlation with each other, and a similar trend is found with pre-working memory
+* We find some post- and pre- working memory to be negatively correlated.
 
-```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
-ggpairs(wm_df, columns = c(2:16), 
+```{r b6_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30}
+pairs_plot <- ggpairs(wm_df, columns = c(2:16), 
         title = "Scatterplot matrix (pairs plots) of variables")
 
-
-ggcorr(wm_df[,2:16]) 
+pairs_plot
+# # Save correlation plot as PNG image
+# setwd("C:/Users/SooHyun Sam Kim/OneDrive/문서/GitHub/STOR765_Spring2023_TeamDS")
+# ggsave("./soohyun/wm_pairs_plot.png", pairs_plot, width = 30, height = 30, dpi = 300)
 ```
+
+
+
