@@ -1,0 +1,91 @@
+---
+title: "02_EDA"
+author: "Tom Keefe"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib, include=FALSE}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(ggplot2,
+       tidyr,
+       dplyr,
+       GGally)
+```
+
+```{r read}
+load("./cortisol.RData")
+```
+
+## EDA of cortisol data
+
+### 1. Missing data
+
+There is no missing data in the cortisol block:
+```{r}
+sum(is.na(cortisol_block))
+```
+
+We now move on to visualizing the marginal and joint distributions of the cortisol variables.
+
+### 2. Associations among variables
+
+```{r scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+ggpairs(cortisol_block, columns = c(2:7), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
+
+
+
+## Boxplots
+
+```{r}
+cortisol_long %>% ggplot(aes(y=cortisol)) +
+    facet_grid(~timepoint) + 
+    geom_boxplot() + 
+    theme(axis.text.x = element_blank()) + 
+    ggtitle("Distribution of cortisol level, facetted by timepoint")
+```
+
+We can see that the marginal distributions are right-skewed, and each the marginal distribution of each timepoint has several outliers.
+These observations suggest that a log transformation may be helpful for downstream analysis.
+
+Next, we will use a line plot to determine belong to a small group of subjects. In order to prevent this from being a "spaghetti plot," we limit the vertical axis to values above 0.25, which is where the outliers begin to occur.
+
+```{r spag}
+cortisol_long %>% 
+    filter(cortisol > 0.25) %>%
+    ggplot(aes(y=cortisol)) + 
+    geom_line(aes(x=timepoint, group=StudyID, col=StudyID), show.legend=F) +
+    ggtitle("Spaghetti plot of cortisol readings above 0.25") + 
+    ylim(c(0.25, NA))
+```
+
+We can see that the outlier points in the boxplots refer to a small number of curves. 
+
+## PCA
+
+```{r pca}
+pca = cortisol_block %>%
+    select(-c(StudyID)) %>%
+    prcomp()
+```
+
+```{r}
+summary(pca)
+```
+
+```{r}
+plot(pca)
+```
+
+
+
+
