@@ -1,0 +1,179 @@
+---
+title: "Make Data"
+author: "Kyungjin Sohn"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext = ".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output = tmp_file)
+  source(file = tmp_file, ...)
+}
+
+source_rmd("00_manage_packages.Rmd")
+```
+
+## 1. Demographics data
+```{r read_1}
+demographics_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                                 sheet = "Demographics_block5")
+```
+
+We examine the structure of the demographics block :
+```{r structure_1}
+str(demographics_block)
+```
+We see that the demographics block contains 130 rows and 6 columns: 
+
+1. _Subject_: subject identifier, which is a string, e.g. `cnt_101_bl`
+2. _Sex_: gender of the subject, e.g. M(Male) or F(Female)
+3. _AgeInMonths_: age of the subject in months
+4. _PubertyTannerSelf_: subject's self puberty level
+5. _PubertyTannerParent_: parent's puberty level
+6. _ParentalEducationAvg_ : average education level of the subject's parent
+
+We check for missing values:
+```{r missings_1}
+sapply(demographics_block, function(x) sum(is.na(x)))
+```
+
+* There are no missing values in _Subject_, _Sex_, and _AgeInMonths_.
+* There are at least one missing value in _PubertyTannerSelf_, _PubertyTannerParent_, and _ParentalEducationAvg_.
+
+### 1) Subject
+No subject identifiers are duplicated: 
+```{r dupes_1}
+table(duplicated(demographics_block$Subject))
+```
+
+### 2) Sex
+Next, we changed the Sex variable to a factor type variable.
+```{r factor_1}
+demographics_block <- demographics_block %>% 
+  mutate(Sex = factor(Sex, levels = c("M", "F")))
+str(demographics_block$Sex)
+```
+
+### 3) Age In Months
+Since we only had the age in months, we added a new column to show the age in years rounded to the second decimal place.
+```{r AgeInYears_1}
+demographics_block <- demographics_block %>% 
+     mutate(AgeInYears = round(AgeInMonths/12, 2)) %>% 
+     relocate(AgeInYears, .after = AgeInMonths)
+```
+
+### 4 ~ 6) Own puberty level, Parent's puberty level, and Average parent education
+The own puberty level variable ranges from 1 to 5, with 29 missing values. The parent's puberty level variable also ranges from 1 to 5, with 21 missing values. Lastly, the average parent education variable ranges from 1 to 9, with 6 missing values.
+```{r summary_1}
+summary(demographics_block)
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_1}
+save(demographics_block, file = "./data/demographics.RData")
+```
+
+## 2. Cortisol data
+```{r read_2}
+cortisol_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                              sheet = "Cortisol_MRI_block1")
+```
+
+We examine the structure of the cortisol block: 
+```{r structure_2}
+str(cortisol_block)
+```
+We see that the cortisol block contains 118 rows and 7 columns: 
+
+1. _StudyID_: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. _M_S1_, _M_S2_, ..., _M_S6_: the cortisol measure at each of six timepoints, which is a nonnegative number
+
+We check for missing values:
+```{r missings_2}
+sapply(cortisol_block, function(x) sum(is.na(x)))
+```
+
+* There are no missing values.
+
+### 1) StudyID
+No subject identifiers are duplicated: 
+```{r dupes_2}
+table(duplicated(cortisol_block$StudyID))
+```
+
+### 2) M_S1 ~ M_S6
+Since the cortisol data are time-series, we will want to pivot the six timepoints into a single column for EDA.
+```{r pivot_2}
+cortisol_long <- cortisol_block %>%
+  pivot_longer(!StudyID, names_to="timepoint", values_to="cortisol") %>%
+  mutate(timepoint = strtoi(str_sub(timepoint, 4)))   # extract timepoint and cast to integer
+head(cortisol_long)
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_2}
+save(cortisol_block, cortisol_long, file = "./data/cortisol.RData")
+```
+
+## 3. FMRI data
+
+```{r read_3}
+fmri_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                         sheet = "ROI_MIST_block2")
+```
+
+We examine the structure of the FMRI block: 
+```{r structure_3}
+str(fmri_block)
+```
+We see that the fmri_block block contains 928 rows and 3 columns: 
+
+1. _Subject_: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. _ROI_: Region of Interest
+3. _MeanPerSigChg_: Mean per signal change
+
+We check for missing values:
+```{r missings_3}
+sapply(fmri_block, function(x) sum(is.na(x)))
+```
+
+* There are no missing values.
+
+### 1) Subject
+There are total of 116 unique subjects.
+```{r unique_3_1}
+length(unique(fmri_block$Subject))
+```
+
+### 2) ROI
+There are total of 8 unique ROIs.
+```{r unique_3_2}
+length(unique(fmri_block$ROI))
+```
+
+### 3) MeanPerSigChg
+
+Since there are 116 unique subjects and 8 unique ROIs, we will need to reshape the dataset from long to wide format. The value in each cell of the resulting dataset will be the _MeanPerSigChg_ for a given subject and ROI combination. This transformation will allow us to more easily compare the signal changes across different brain regions and subjects.
+```{r pivot_3}
+fmri_wide <- fmri_block %>% 
+  pivot_wider(names_from = ROI, values_from = MeanPerSigChg)
+head(fmri_wide, 5)
+```
+After applying this transformation, the resulting dataset have 116 rows and 9 columns, where the first column is the subject ID and the remaining 8 columns represent the ROIs.
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_3}
+save(fmri_block, fmri_wide, file = "./data/fmri.RData")
+```
+
+## 4. Psych data
+
+```{r}
+
+```
+
+## 5. Working memory data
+## 6. Autonomic data
