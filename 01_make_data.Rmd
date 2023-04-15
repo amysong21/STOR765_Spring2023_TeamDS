@@ -28,12 +28,12 @@ str(demographics_block)
 ```
 We see that the demographics block contains 130 rows and 6 columns: 
 
-1. _Subject_: subject identifier, which is a string, e.g. `cnt_101_bl`
-2. _Sex_: gender of the subject, e.g. M(Male) or F(Female)
-3. _AgeInMonths_: age of the subject in months
-4. _PubertyTannerSelf_: subject's self puberty level
-5. _PubertyTannerParent_: parent's puberty level
-6. _ParentalEducationAvg_ : average education level of the subject's parent
+1. **`Subject`**: subject identifier, which is a string, e.g. `cnt_101_bl`
+2. **`Sex`**: gender of the subject, e.g. M(Male) or F(Female)
+3. **`AgeInMonths`**: age of the subject in months
+4. **`PubertyTannerSelf`**: subject's self puberty level
+5. **`PubertyTannerParent`**: parent's puberty level
+6. **`ParentalEducationAvg`**: average education level of the subject's parent
 
 We check for missing values:
 ```{r missings_1}
@@ -43,10 +43,13 @@ sapply(demographics_block, function(x) sum(is.na(x)))
 * There are no missing values in _Subject_, _Sex_, and _AgeInMonths_.
 * There are at least one missing value in _PubertyTannerSelf_, _PubertyTannerParent_, and _ParentalEducationAvg_.
 
-### 1) Subject
+### 1) SubjectID
 No subject identifiers are duplicated: 
 ```{r dupes_1}
-table(duplicated(demographics_block$Subject))
+demographics_block <- demographics_block %>% 
+  rename("SubjectID" = "Subject")
+
+table(duplicated(demographics_block$SubjectID))
 ```
 
 ### 2) Sex
@@ -88,8 +91,8 @@ str(cortisol_block)
 ```
 We see that the cortisol block contains 118 rows and 7 columns: 
 
-1. _StudyID_: a patient identifier, which is a string, e.g. `cnt_101_bl`
-2. _M_S1_, _M_S2_, ..., _M_S6_: the cortisol measure at each of six timepoints, which is a nonnegative number
+1. **`StudyID`**: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. **`M_S1`**, **`M_S2`**, ..., **`M_S6`**: the cortisol measure at each of six timepoints, which is a nonnegative number
 
 We check for missing values:
 ```{r missings_2}
@@ -98,24 +101,33 @@ sapply(cortisol_block, function(x) sum(is.na(x)))
 
 * There are no missing values.
 
-### 1) StudyID
+### 1) SubjectID
 No subject identifiers are duplicated: 
 ```{r dupes_2}
-table(duplicated(cortisol_block$StudyID))
+cortisol_block <- cortisol_block %>% 
+  rename("SubjectID" = "StudyID")
+
+table(duplicated(cortisol_block$SubjectID))
 ```
 
 ### 2) M_S1 ~ M_S6
+
+```{r summary_2}
+summary(cortisol_block)
+```
+
 Since the cortisol data are time-series, we will want to pivot the six timepoints into a single column for EDA.
 ```{r pivot_2}
 cortisol_long <- cortisol_block %>%
-  pivot_longer(!StudyID, names_to="timepoint", values_to="cortisol") %>%
+  pivot_longer(!SubjectID, names_to="timepoint", values_to="cortisol") %>%
   mutate(timepoint = strtoi(str_sub(timepoint, 4)))   # extract timepoint and cast to integer
 head(cortisol_long)
 ```
 
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_2}
-save(cortisol_block, cortisol_long, file = "./data/cortisol.RData")
+cortisol_wide <- cortisol_block
+save(cortisol_wide, cortisol_long, file = "./data/cortisol.RData")
 ```
 
 ## 3. FMRI data
@@ -129,11 +141,11 @@ We examine the structure of the FMRI block:
 ```{r structure_3}
 str(fmri_block)
 ```
-We see that the fmri_block block contains 928 rows and 3 columns: 
+We see that the FMRI block contains 928 rows and 3 columns: 
 
-1. _Subject_: a patient identifier, which is a string, e.g. `cnt_101_bl`
-2. _ROI_: Region of Interest
-3. _MeanPerSigChg_: Mean per signal change
+1. **`Subject`**: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. **`ROI`**: Region of Interest
+3. **`MeanPerSigChg`**: Mean per signal change
 
 We check for missing values:
 ```{r missings_3}
@@ -142,10 +154,13 @@ sapply(fmri_block, function(x) sum(is.na(x)))
 
 * There are no missing values.
 
-### 1) Subject
+### 1) SubjectID
 There are total of 116 unique subjects.
 ```{r unique_3_1}
-length(unique(fmri_block$Subject))
+fmri_block <- fmri_block %>% 
+  rename("SubjectID" = "Subject")
+
+length(unique(fmri_block$SubjectID))
 ```
 
 ### 2) ROI
@@ -164,16 +179,167 @@ head(fmri_wide, 5)
 ```
 After applying this transformation, the resulting dataset have 116 rows and 9 columns, where the first column is the subject ID and the remaining 8 columns represent the ROIs.
 
-After making the modifications mentioned above, we saved the updated data frame.
-```{r save_3}
-save(fmri_block, fmri_wide, file = "./data/fmri.RData")
+```{r summary_3}
+summary(fmri_wide)
 ```
 
-## 4. Psych data
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_3}
+fmri_long <- fmri_block
+save(fmri_long, fmri_wide, file = "./data/fmri.RData")
+```
 
-```{r}
+## 4. Psych Profile data
 
+```{r read_4}
+psych_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                          sheet = "PsychProfile_block3")
+```
+
+We examine the structure of the Psych block: 
+```{r structure_4}
+str(psych_block)
+```
+We see that the Psych block contains 130 rows and 6 columns: 
+
+1. **`SUBJ_ID`**: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. **`STAITrait`**: 
+3. **`STAIPost-Pre`**:
+4. **`CogDisScore`**: score of cognition disorder 
+5. **`Anhedonia`**:
+6. **`CsopsNegative`**:
+
+Before checking for missing values in the Pysch block, we need to convert _STAITrait_ from character format to numeric format.
+```{r numeric_4}
+psych_block <- psych_block %>% 
+  mutate(STAITrait = as.numeric(na_if(STAITrait, "N/A")))
+str(psych_block)
+```
+
+Now, we check for missing values:
+```{r missings_4}
+sapply(psych_block, function(x) sum(is.na(x)))
+```
+
+* There are no missing values in _SUBJ_ID_, _CogDisScore_, _Anhedonia_, and _AgeInMonths_.
+* There are at least one missing value in _STAITrait_, and _STAIPost_.
+
+### 1) SubjectID
+No subject identifiers are duplicated: 
+```{r dupes_4}
+psych_block <- psych_block %>% 
+  rename("SubjectID" = "SUBJ_ID")
+
+table(duplicated(psych_block$SubjectID))
+```
+
+### 2 ~ 6) Psych measures
+```{r summary_4}
+summary(psych_block[, 2:6])
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_4}
+save(psych_block, file = "./data/pysch.RData")
 ```
 
 ## 5. Working memory data
+
+```{r read_5}
+working_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                            sheet = "ROI_Nback_2vs0_block4")
+```
+
+We examine the structure of the Working memory block: 
+```{r structure_5}
+str(working_block)
+```
+We see that the Autonomic block contains 1024 rows and 4 columns: 
+
+1. **`Subject`**: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. **`ROI`**: Region of Interest
+3. **`Status`**:
+4. **`Mean`**:
+
+We check for missing values:
+```{r missings_5}
+sapply(working_block, function(x) sum(is.na(x)))
+```
+
+* There are no missing values.
+
+### 1) SubjectID
+There are total of 8 unique subjects.
+```{r unique_5_1}
+working_block <- working_block %>% 
+  rename("SubjectID" = "Subject")
+
+length(unique(working_block$SubjectID))
+```
+
+### 2) ROI
+There are total of 8 unique ROIs.
+```{r unique_5_2}
+length(unique(working_block$ROI))
+```
+
+### 3) Status
+There are total of 8 unique ROIs.
+```{r unique_5_3}
+length(unique(working_block$Status))
+```
+
+Based on this, each of the 64 subjects has 16 (= 8 ROIs x 2 status levels) `Mean` values.
+
+### 4) Mean
+```{r summary_5}
+summary(working_block$Mean)
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_5}
+save(working_block, file = "./data/working.RData")
+```
+
 ## 6. Autonomic data
+
+```{r read_6}
+autonomic_block <- read_excel("./data/cognit_stor765_data.xlsx", 
+                              sheet = "HRV_SAA_block7")
+```
+
+We examine the structure of the Autonomic block: 
+```{r structure_6}
+str(autonomic_block)
+```
+We see that the Autonomic block contains 174 rows and 10 columns: 
+
+1. **`Subject`**: a patient identifier, which is a string, e.g. `cnt_101_bl`
+2. **`HRV_MIST1`**, **`HRV_MIST2`**, **`HRV_MIST3`**: heart-rate variability from 1 to 3
+3. **`AA_S1`**, **`AA_S2`**, ..., **`AA_S6`**: salivary alpha amylase from 1 to 6
+
+We check for missing values:
+```{r missings_6}
+sapply(autonomic_block, function(x) sum(is.na(x)))
+```
+
+* The columns **`HRV_MIST`** and **`AA_S`** have a high number of missing values, with approximately 50% of the elements in each column being missing.
+
+### 1) SubjectID
+No subject identifiers are duplicated: 
+```{r dupes_6}
+autonomic_block <- autonomic_block %>% 
+  rename("SubjectID" = "Subject")
+
+table(duplicated(autonomic_block$SubjectID))
+```
+
+### 2 ~ 6) Autonomic measures
+```{r summary_6}
+summary(autonomic_block[, 2:10])
+```
+
+After making the modifications mentioned above, we saved the updated data frame.
+```{r save_6}
+save(autonomic_block, file = "./data/autonomic.RData")
+```
