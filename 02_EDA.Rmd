@@ -1,0 +1,332 @@
+---
+title: "Make Data"
+author: "SooHyun Kim"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext = ".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output = tmp_file)
+  source(file = tmp_file, ...)
+}
+
+source_rmd("00_manage_packages.Rmd")
+```
+
+## 1. Demographics data
+```{r read1}
+load("./data/demographics.RData")
+```
+
+### A. Missing Data
+* Out of 130 observations 45 rows have at least one missing input.
+```{r}
+nrow(demographics_block[complete.cases(demographics_block),])/nrow(demographics_block)
+nrow(demographics_block) - nrow(demographics_block[complete.cases(demographics_block),])
+```
+
+```{r demo_heatmap, fig.align='center', fig.width=9, fig.height=7}
+vis_miss(demographics_block[,2:7]) + 
+     theme(axis.text.x = element_text(angle = 75)) +
+     labs(title = "Heatmap of Missing Data in the Demographics")
+```
+
+To be specific, 29 observations for Own puberty level, 21 observations for Parent's puberty level, and 6 observations for Average parent education variable are missing.
+```{r}
+sapply(demographics_block, function(x) sum(is.na(x)))
+```
+
+One subject (`cnt_277_bl`) has missing values for all three variables.
+```{r na3}
+allNA <- which(apply(demographics_block, MARGIN = 1, function(x) sum(is.na(x))) == 3)
+demographics_block[allNA,]
+```
+
+Additionally, there are 9 subjects who have two missing values among the three columns. Of these 9 subjects, 6 have two missing values in the two puberty level columns, and 3 have two missing values in both the Parental puberty level and Parental education average columns.
+```{r na1}
+twoNA <- which(apply(demographics_block, MARGIN = 1, function(x) sum(is.na(x))) == 2)
+demographics_block[twoNA,]
+```
+
+#### Exploring the Missing Data Points
+
+```{r exploremiss1, warning=FALSE, message=FALSE}
+gg_miss_upset(demographics_block[,2:7], nsets = n_var_miss(demographics_block))
+```
+
+```{r}
+# using  geom_miss_point()
+ggplot(demographics_block,
+       aes(x = PubertyTannerSelf,
+           y = PubertyTannerParent)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(demographics_block,
+       aes(x = PubertyTannerSelf,
+           y = ParentalEducationAvg)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(demographics_block,
+       aes(x = PubertyTannerSelf,
+           y = ParentalEducationAvg)) +
+ geom_miss_point()
+```
+
+If we remove observations with at least one missing value, there are 85 subjects remaining.
+```{r}
+nrow(demographics_block %>% drop_na(.))
+```
+
+### B. Summary of variables
+```{r summary1}
+summary(demographics_block)
+```
+
+
+### C. Associations among variables
+
+* There are more male subjects than female.
+* The Age, Own puberty level, and Parent's puberty level variables are fairly spread out.
+* The Average parent education level variable is left-skewed, with most values ranging between 6 to 10.
+* Among the dataset, females have a higher average own puberty level than males.
+* There seems to be a strong positive correlation between Age in years and Parent's puberty level.
+* Additionally, there is a high correlation between Own puberty level and Parent's puberty level.
+
+```{r corr1, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+ggpairs(demographics_block, columns = c(2, 4:7), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
+
+## 2. Cortisol data
+```{r read_2}
+load("./data/cortisol.RData")
+```
+
+### A. Missing Data
+* No missing data for block 1
+```{r}
+nrow(cortisol_wide[complete.cases(cortisol_wide),])/nrow(cortisol_wide)
+```
+
+### B. Summary of variables
+```{r summary2}
+summary(cortisol_long)
+summary(cortisol_wide)
+```
+
+
+### C. Associations among variables
+
+* All regions are significantly correlated (all over $0.3$)
+* High correlation between `M_S1`,`M_S2`, and `M_S3` all with a correlation above $0.6$
+* `M_S4`,`M_S5`, and `M_S6` are highly correlated
+
+
+```{r corr2, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+ggpairs(cortisol_wide, columns = c(2:7), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
+
+```{r}
+ggplot(cortisol_long, aes(x = as.factor(timepoint), y = cortisol)) +
+  geom_boxplot()+
+  ylim(0,.5)+
+  labs(x = "timepoint")
+```
+
+Does not seem to be a clear shape in the cortisol over time.
+
+
+## 3. fMRI data
+
+```{r read_3}
+load("./data/fMRI.RData")
+```
+
+### A. Missing Data
+* No missing data for block 2
+```{r}
+nrow(fmri_wide[complete.cases(fmri_wide),])/nrow(fmri_wide)
+```
+
+### B. Summary of variables
+```{r summary3}
+summary(fmri_wide)
+```
+
+
+### C. Associations among variables
+* The left and the right corresponding regions are positively correlated
+* `vmpfc` is highly correlated with each other. While the right side is correlated with `dlpfc` and the `hippo` on the right side of the brain, the left side of the `vmpfc` is only correlated with the right side of the `vmpfc`
+* `hippo_R_stor` is positively correlated with `amyg` on either side. While `hippo_L_stor` is highly correlated with both `hippo` and `dlpfc` on either side
+
+```{r scatter2, warning=FALSE, message=FALSE, fig.align='center', fig.width=11}
+ggpairs(fmri_wide, columns = c(2:9), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
+
+## 4. Psych Profile data
+
+```{r read_4}
+load("./data/pysch.RData")
+```
+
+### A. Missing Data
+* Out of 130 observations 8 rows have at least one missing input.
+```{r}
+nrow(psych_block[complete.cases(psych_block),])/nrow(psych_block)
+nrow(psych_block) - nrow(psych_block[complete.cases(psych_block),])
+```
+```{r psychheatmap, fig.align='center', fig.width=9, fig.height=7}
+vis_miss(psych_block) + 
+     theme(axis.text.x = element_text(angle = 75)) +
+     labs(title = "Heatmap of Missing Data in Block 3. Psych Profile")
+```
+```{r}
+sapply(psych_block, function(x) sum(is.na(x)))
+```
+
+From the plot above, we can see that for variable `STAIPost-Pre` variable of 4%, which 5 out of 130 observations. We can also check that `STAITrait` has 4 missing values. One observation has both variables with missing. 
+
+#### Exploring the Missing Data Points
+```{r}
+gg_miss_upset(psych_block[,2:6], nsets = n_var_miss(psych_block))
+```
+
+```{r}
+# using  geom_miss_point()
+ggplot(psych_block,
+       aes(x = STAITrait,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(psych_block,
+       aes(x = CogDisScore,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(psych_block,
+       aes(x = Anhedonia,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+
+# using  geom_miss_point()
+ggplot(psych_block,
+       aes(x = Anhedonia,
+           y = `STAIPost-Pre`)) +
+ geom_miss_point()
+```
+
+If we remove observations with at least one missing value, there are 122 subjects remaining.
+```{r}
+nrow(psych_block %>% drop_na(.))
+psych_block2 <- psych_block %>%  drop_na(.)
+```
+
+### B. Summary of variables
+
+```{r}
+summary(psych_block2)
+```
+
+
+### C. Associations among variables
+
+* All the variables have a positive correlation except `STAIPost-Pre`.
+
+
+```{r b3_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+ggpairs(psych_block2, columns = c(2:6), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
+
+## 5. Working memory data
+
+```{r read_5}
+load("./data/working.RData")
+# working memory (7)
+load("./data/wm_wide.RData")
+```
+
+### A. Missing Data
+* No missing data for block 6 Working memory.
+```{r}
+nrow(wm_df[complete.cases(wm_df),])/nrow(wm_df)
+nrow(wm_df) - nrow(wm_df[complete.cases(wm_df),])
+```
+
+
+### B. Summary of variables
+```{r summary5}
+summary(wm_df)
+```
+
+
+### C. Associations among variables
+
+* Usually post-working memory has a positive correlation with each other, and a similar trend is found with pre-working memory
+* We find some post- and pre- working memory to be negatively correlated.
+
+```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30}
+pairs_plot <- ggpairs(wm_df, columns = c(2:16), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+
+pairs_plot
+# # Save correlation plot as PNG image
+# setwd("C:/Users/SooHyun Sam Kim/OneDrive/문서/GitHub/STOR765_Spring2023_TeamDS")
+# ggsave("./soohyun/wm_pairs_plot.png", pairs_plot, width = 30, height = 30, dpi = 300)
+```
+
+
+## 6. Autonomic data
+
+```{r read_6}
+load("./data/autonomic.RData")
+```
+
+### A. Missing Data
+* Out of 174 observations 137 rows have at least one missing input.
+```{r}
+nrow(autonomic_block[complete.cases(autonomic_block),])/nrow(autonomic_block)
+nrow(autonomic_block) - nrow(autonomic_block[complete.cases(autonomic_block),])
+```
+```{r heatmap6, fig.align='center', fig.width=9, fig.height=7}
+vis_miss(autonomic_block) + 
+     theme(axis.text.x = element_text(angle = 75)) +
+     labs(title = "Heatmap of Missing Data in the HRV and SAA")
+```
+
+Missing data points is a significant issue in Block 7. Missing data appears in $47.3%$ of the data. The `SAA` variables seem to have a high number of missing values with over $50%$ for all `AA` variables. For the `HRV_MIST` variables have a missing rate all over $40%$
+
+### Exploring the Patterns of Missing Data
+```{r}
+gg_miss_upset(autonomic_block[,2:10], nsets = n_var_miss(autonomic_block))
+```
+
+53 observations have all missing inputs. We will drop this block from analysis due to missing values issue.
+
+
+
+### B. Summary of variables
+```{r}
+summary(autonomic_block)
+```
+
+
+
+### C. Associations among variables
+
+* The 3 measurements of Heart Rate Variability (HRV) is highly correlated with each other.
+* All 6 measurements of SAA are highly correlated with each other.
+
+```{r scatter6, warning=FALSE, message=FALSE, fig.align='center', fig.width=10}
+ggpairs(autonomic_block, columns = c(2:10), 
+        title = "Scatterplot matrix (pairs plots) of variables")
+```
