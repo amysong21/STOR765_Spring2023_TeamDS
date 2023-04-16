@@ -1,5 +1,5 @@
 ---
-title: "Make Data"
+title: "EDA"
 author: "SooHyun Kim"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
