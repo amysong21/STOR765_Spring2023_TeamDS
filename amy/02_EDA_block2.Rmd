@@ -49,8 +49,9 @@ Plot of the PCA on the first 2 components:
 ```{r}
 autoplot(fmri_pca, data = fmri_block[,2:9])
 ```
-Plot of PCA: 
+Plot of PCA:
 ```{r}
 plot(fmri_pca, type = "l")
+factoextra::fviz_eig(fmri_pca, addlabels = T)
 ```
 

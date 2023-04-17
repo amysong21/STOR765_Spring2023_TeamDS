@@ -26,5 +26,6 @@ p_load(devtools,
        FactoMineR,
        factoextra,
        reshape2,
-       visda)
+       visda,
+       ggfortify)
 ```

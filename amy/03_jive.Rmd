@@ -1,0 +1,28 @@
+---
+title: "03_jive"
+output: html_document
+date: "2023-04-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+```{r lib, include=FALSE, message = F}
+if (!require("pacman")) {
+  install.packages("pacman")
+  library(pacman)
+} 
+p_load(tidyr, dplyr, CJIVE)
+```
+
+jive$joint.matrix[[1]]$u -- gives you the score 
+Y = UDV^t = sum_{k = 1}^6 d_k U_k V_k^t where U_k is the kth column of U, V_k is the kth columns of V, and d_k is the kth diagonal element of D
+using the example that taebin worked on: cortisol + working memory
+Y in 64*6, U in 64x6, D in 6x6 (diagonal), v^t in 6 x 6
+information about each observation or patient is linked in the U matrix
+U matrix - sorted by the "importance" or how much variability is explained
+
+after pca with the number of columns to keep --> jive
+input for jive: Yj [Uc, Uw] in 64 x 3+4 - concatenated score matrix 
+then jive does an svd -> Yj = UjDjVj^t -> then select the first n columns using the joint rank and the U matrix selected in the last step is then called the CNS -> common ,.
