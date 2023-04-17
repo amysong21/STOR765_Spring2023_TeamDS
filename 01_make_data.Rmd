@@ -296,9 +296,20 @@ Based on this, each of the 64 subjects has 16 (= 8 ROIs x 2 status levels) `Mean
 summary(working_block$Mean)
 ```
 
+Since there are 64 unique subjects and 8 unique ROIs with 2 status levels, we can reshape the dataset from wide to long format. The value in each cell of the resulting dataset will be the _Mean_ for a given combination of subject, ROI and the status. This transformation will allow us to more easily compare the signal changes across different brain regions and subjects with given status.
+```{r pivot_5}
+working_wide <- working_block %>% 
+  pivot_wider(names_from = c("ROI", "Status"),
+              values_from = "Mean") %>% 
+  remove_rownames %>%
+  column_to_rownames(var="SubjectID")
+head(working_wide, 5)
+```
+
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_5}
-save(working_block, file = "./data/working.RData")
+working_long <- working_block
+save(working_long, working_wide, file = "./data/working.RData")
 ```
 
 ## 6. Autonomic data

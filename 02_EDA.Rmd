@@ -253,20 +253,18 @@ ggpairs(psych_block2, columns = c(2:6),
 
 ```{r read_5}
 load("./data/working.RData")
-# working memory (7)
-load("./data/wm_wide.RData")
 ```
 
 ### A. Missing Data
 * No missing data for block 6 Working memory.
 ```{r miss_percentage5}
-nrow(wm_df[complete.cases(wm_df),])/nrow(wm_df)
-nrow(wm_df) - nrow(wm_df[complete.cases(wm_df),])
+nrow(working_wide[complete.cases(working_wide),])/nrow(working_wide)
+nrow(working_wide) - nrow(working_wide[complete.cases(working_wide),])
 ```
 
 ### B. Summary of variables
 ```{r summary5}
-summary(wm_df)
+summary(working_wide)
 ```
 
 ### C. Associations among variables
@@ -274,8 +272,8 @@ summary(wm_df)
 * Usually post-working memory has a positive correlation with each other, and a similar trend is found with pre-working memory
 * We find some post- and pre- working memory to be negatively correlated.
 
-```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30, fig.height=15}
-pairs_plot <- ggpairs(wm_df, columns = c(2:16), 
+```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30, fig.height=20}
+pairs_plot <- ggpairs(working_wide, columns = c(2:16), 
         title = "Scatterplot matrix (pairs plots) of variables")
 
 pairs_plot
