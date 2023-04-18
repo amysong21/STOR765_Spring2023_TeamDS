@@ -1,5 +1,7 @@
 ---
-title: 'PCA: Principal Component '
+title: 'PCA: Principal Component Analysis'
+author: "Amy Song"
+date: "April 17, 2023"
 output:
   html_document:
     df_print: paged
@@ -22,7 +24,6 @@ load('../data/cortisol.RData')
 # fMRI Data
 load('../data/fmri.Rdata')
 # Working Memory Data
-load('../taebin/Rdata/wm_df.Rdata')
 load('../data/working.Rdata')
 # demographics Data
 load('../data/demographics.Rdata')
@@ -43,25 +44,33 @@ The number of components selected for each PCA of data block if 95% of the data 
 ## Cortisol (block 1)
 Checking the dimension of the data block and whether there is `Subject` in the column. This column will be not be considered in the PCA. 
 ```{r}
-dim(cortisol_block)
-names(cortisol_block)
+dim(cortisol_wide)
+names(cortisol_wide)
 ```
 
-```{r}
+```{r, warning = F}
 # PCA of the block: the matrix is scaled
-cortisol_pca<- prcomp(cortisol_block[,2:7], scale = T)
+cortisol_pca<- prcomp(cortisol_wide[,2:7], scale = F)
 # Scree plot of the PCA
-factoextra::fviz_eig(cortisol_pca, addlabels = T)
+cumulated.var <- get_eig(cortisol_pca)$cumulative.variance.percent
+cumulated.var.labs <- paste(round(cumulated.var,1),'%')
+cumulated.var.labs[1] <- NA
+factoextra::fviz_eig(cortisol_pca, addlabels = T, title = "Scree Plot for Cortisol")  + 
+  geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
+  geom_point(aes(y = cumulated.var), color = "lightslategrey") +
+  geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
 ```
 ```{r}
 # Summary of the PCA
 summary(cortisol_pca)
 ```
-* As seen in the scree plot and the summary of the PCA, *3 Components* explains 99% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `M_S3` on the first PC is 0.4328 and 0.255 for second PC, so the vector is centered at (0.4328, 0.255)
+* As seen in the scree plot and the summary of the PCA, *3 Components* explains 99% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `M_S3` on the first PC is 0.2795931 and 0.3229215 for second PC, so the vector is centered at (0.2795931, 0.3229215)
 
 ```{r}
 # Bi-Plot of the PCA: both scores and loading
-ggplot2::autoplot(cortisol_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = TRUE)
+autoplot(cortisol_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = TRUE) + 
+  geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
+  geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
 # loading values of PCA
 cortisol_pca$rotation
 ```
@@ -80,21 +89,29 @@ dim(fmri_wide)
 names(fmri_wide)
 ```
 
-```{r}
-# PCA of the block: the matrix is scaled
-fmri_pca <- prcomp(fmri_wide[,2:9], scale = T)
+```{r, warning = F}
+# PCA of the block: the matrix is centered
+fmri_pca <- prcomp(fmri_wide[,2:9])
 # Scree plot of the PCA
-factoextra::fviz_eig(fmri_pca, addlabels = T)
+cumulated.var <- get_eig(fmri_pca)$cumulative.variance.percent
+cumulated.var.labs <- paste(round(cumulated.var,1),'%')
+cumulated.var.labs[1] <- NA
+factoextra::fviz_eig(fmri_pca, addlabels = T, title = "Scree Plot for fMRI")  + 
+  geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
+  geom_point(aes(y = cumulated.var), color = "lightslategrey") +
+  geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
 ```
 ```{r}
 # Summary of the PCA
 summary(fmri_pca)
 ```
-* As seen in the scree plot and the summary of the PCA, *6 Components* explains 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `amyg_R_stor` on the first PC is -0.4315 and 0.0300 for second PC, so the vector is centered at (-0.4315, 0.0300)
+* As seen in the scree plot and the summary of the PCA, *5 Components* explains 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `amyg_R_stor` on the first PC is -0.4315 and 0.0300 for second PC, so the vector is centered at (-0.4315, 0.0300)
 
 ```{r}
 # Bi-Plot of the PCA: both scores and loading
-ggplot2::autoplot(fmri_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T)
+ggplot2::autoplot(fmri_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
+  geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
+  geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
 # loading values of PCA
 fmri_pca$rotation
 ```
@@ -102,36 +119,44 @@ fmri_pca$rotation
 # Bar plot of the Contributions of each variables in the selected PC
 factoextra::fviz_contrib(fmri_pca,
                  choice = "var",
-                 axes = 6)
+                 axes = 5)
 ```
 
 ## Working Memory 
 
 Checking the dimension of the data block and whether there is `Subject` in the column. 
 ```{r}
-dim(wm_df)
-names(wm_df)
+dim(working_wide)
+names(working_wide)
 ```
 
-```{r}
-# PCA of the block: the matrix is scaled
+```{r, warning = F}
+# PCA of the block: the matrix is centered
 #wm_corr <- cor(wm_df)
-wm_pca <- prcomp(wm_df, scale = T)
+wm_pca <- prcomp(working_wide)
 # Scree plot of the PCA
-factoextra::fviz_eig(wm_pca, addlabels = T)
+cumulated.var <- get_eig(wm_pca)$cumulative.variance.percent[1:10]
+cumulated.var.labs <- paste(round(cumulated.var,1),'%')
+cumulated.var.labs[1] <- NA
+factoextra::fviz_eig(wm_pca, addlabels = T, title = "Scree Plot for Worming Memory")  + 
+  geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
+  geom_point(aes(y = cumulated.var), color = "lightslategrey") +
+  geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
 ```
 ```{r}
 # Summary of the PCA
 summary(wm_pca)
 ```
 
-* As seen in the scree plot and the summary of the PCA, *10 Components* explains 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `amyg_L_stor_PostStress` on the first PC is 0.2863 and 0.3399 for second PC, so the vector is centered at (0.2863, 0.3399)
+* As seen in the scree plot and the summary of the PCA, *9 Components* explains 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components. The points on the plot indicate the scores of each observations and the blue errors indicate the loading vectors of the variables. For instance, the loading value for `amyg_L_stor_PostStress` on the first PC is 0.039938048 and -0.174290802 for second PC, so the vector is centered at (0.039938048, -0.174290802)
 
 ```{r}
 # Bi-Plot of the PCA: both scores and loading
-ggplot2::autoplot(wm_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T)
+ggplot2::autoplot(wm_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
+  geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
+  geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
 # loading values of PCA
-wm_pca$rotation
+wm_pca$rotation[,c(1,2,9)]
 ```
 
 ## Demographics 
@@ -141,19 +166,31 @@ dim(demographics_block)
 names(demographics_block)
 ```
 
-```{r}
-demo_pca <- demographics_block %>% mutate(Sex = as.numeric(Sex)) %>% select(-SubjectID) %>% drop_na(.) %>% prcomp(scale = T)
-fviz_eig(demo_pca, addlabels = T)
+```{r, warning=F}
+# PCA of the block: the matrix is centered and scaled
+demo_pca <- demographics_block %>% mutate(Sex = as.numeric(Sex)) %>% select(-c(SubjectID,AgeInYears)) %>% drop_na(.) %>% prcomp(scale = T)
+# Scree plot of PCA with cumulated sum of percentage of variance explained
+cumulated.var <- get_eig(demo_pca)$cumulative.variance.percent
+cumulated.var.labs <- paste(round(cumulated.var,1),'%')
+cumulated.var.labs[1] <- NA
+factoextra::fviz_eig(demo_pca, addlabels = T, title = "Scree Plot for Demographics")  + 
+  geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
+  geom_point(aes(y = cumulated.var), color = "lightslategrey") +
+  geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
 ```
 ```{r}
 summary(demo_pca)
 ```
+* As seen in the scree plot and the summary of the PCA, *4 Components* explains at least 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components.
 
 ```{r}
 # Bi-Plot of the PCA: both scores and loading
-ggplot2::autoplot(demo_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T)
+ggplot2::autoplot(demo_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T, data = demographics_block %>% select(-c(SubjectID,AgeInYears)) %>% drop_na(.), colour = 'Sex')  + 
+  geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
+  geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
 # loading values of PCA
 demo_pca$rotation
+# color bi-plot
 ```
 
 ```{r}
@@ -163,3 +200,43 @@ factoextra::fviz_contrib(demo_pca,
                  axes = 4)
 ```
 
+## Psych Profile
+drop the rows with missing values
+```{r}
+dim(psych_block)
+names(psych_block)
+```
+
+```{r, warning=F}
+psych_pca <- psych_block %>% select(-SubjectID) %>% drop_na(.) %>% prcomp(scale = T)
+# Scree plot of PCA with cumulated sum of percentage of variance explained
+cumulated.var <- get_eig(psych_pca)$cumulative.variance.percent
+cumulated.var.labs <- paste(round(cumulated.var,1),'%')
+cumulated.var.labs[1] <- NA
+factoextra::fviz_eig(psych_pca, addlabels = T, title = "Scree Plot for Psych Profile")  + 
+  geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
+  geom_point(aes(y = cumulated.var), color = "lightslategrey") +
+  geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+```
+
+```{r}
+summary(psych_pca)
+```
+
+* As seen in the scree plot and the summary of the PCA, *4 Components* explains 95% of the variances in the data. The following is the biplot, which plots both scores and loading values of the first 2 principal components.
+
+```{r}
+# Bi-Plot of the PCA: both scores and loading
+ggplot2::autoplot(psych_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
+  geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
+  geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+# loading values of PCA
+psych_pca$rotation[,c(1,2,4)]
+```
+
+```{r}
+# Bar plot of the Contributions of each variables in the selected PC
+factoextra::fviz_contrib(psych_pca,
+                 choice = "var",
+                 axes = 4)
+```
