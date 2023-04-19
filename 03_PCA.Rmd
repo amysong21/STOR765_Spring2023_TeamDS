@@ -57,6 +57,7 @@ factoextra::fviz_eig(cortisol_pca, addlabels = T, title = "Scree Plot for Cortis
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+ggsave("./plots/cortisol_pca.png", bg = "white")
 ```
 ```{r}
 # Summary of the PCA
@@ -66,9 +67,10 @@ summary(cortisol_pca)
 
 ```{r}
 # Bi-Plot of the PCA: both scores and loading
-autoplot(cortisol_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = TRUE) + 
+autoplot(cortisol_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = TRUE, title = "Bi-Plot of Cortisol") + 
   geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
   geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+ggsave("./plots/cortisol_bi-plot.png", bg = "white")
 # loading values of PCA
 cortisol_pca$rotation
 ```
@@ -98,6 +100,7 @@ factoextra::fviz_eig(fmri_pca, addlabels = T, title = "Scree Plot for fMRI")  +
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+ggsave("./plots/fmri_pca.png", bg = "white")
 ```
 ```{r}
 # Summary of the PCA
@@ -110,6 +113,7 @@ summary(fmri_pca)
 ggplot2::autoplot(fmri_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
   geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
   geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+ggsave("./plots/fmri_bi-plot.png", bg = "white")
 # loading values of PCA
 fmri_pca$rotation
 ```
@@ -140,6 +144,7 @@ factoextra::fviz_eig(wm_pca, addlabels = T, title = "Scree Plot for Worming Memo
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+ggsave("./plots/wm_pca.png", bg = "white")
 ```
 ```{r}
 # Summary of the PCA
@@ -153,6 +158,7 @@ summary(wm_pca)
 ggplot2::autoplot(wm_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
   geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
   geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+ggsave("./plots/wm_bi-plot.png", bg = "white")
 # loading values of PCA
 wm_pca$rotation[,c(1,2,9)]
 ```
@@ -175,6 +181,7 @@ factoextra::fviz_eig(demo_pca, addlabels = T, title = "Scree Plot for Demographi
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+ggsave("./plots/demo_pca.png", bg = "white")
 ```
 ```{r}
 summary(demo_pca)
@@ -186,6 +193,7 @@ summary(demo_pca)
 ggplot2::autoplot(demo_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T, data = demographics_block %>% select(-c(SubjectID,AgeInYears)) %>% drop_na(.), colour = 'Sex')  + 
   geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
   geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+ggsave("./plots/demo_bi-plot.png", bg = "white")
 # loading values of PCA
 demo_pca$rotation
 # color bi-plot
@@ -215,6 +223,7 @@ factoextra::fviz_eig(psych_pca, addlabels = T, title = "Scree Plot for Psych Pro
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
+ggsave("./plots/psych_pca.png", bg = "white")
 ```
 
 ```{r}
@@ -228,6 +237,7 @@ summary(psych_pca)
 ggplot2::autoplot(psych_pca, label = FALSE, loadings.label = TRUE, loadings.label.repel = T) + 
   geom_vline(xintercept = 0, color = "gray28", lwd=0.25) + 
   geom_hline(yintercept = 0, color = "gray28", lwd=0.25) 
+ggsave("./plots/psych_bi-plot.png", bg = "white")
 # loading values of PCA
 psych_pca$rotation[,c(1,2,4)]
 ```
