@@ -51,6 +51,8 @@ twoNA <- which(apply(demographics_block, MARGIN = 1, function(x) sum(is.na(x))) 
 demographics_block[twoNA,]
 ```
 
+
+
 #### Exploring the Missing Data Points
 
 ```{r explore_demo1, warning=FALSE, message=FALSE, fig.align='center'}
@@ -85,6 +87,12 @@ nrow(demographics_block %>% drop_na(.))
 ### B. Summary of variables
 ```{r summary1}
 summary(demographics_block)
+```
+
+```{r}
+# save without missing data
+demographics_block2 <- demographics_block %>% na.omit()
+# save(demographics_block2, file = "./data/demographics2.RData")
 ```
 
 ### C. Associations among variables
@@ -231,6 +239,13 @@ If we remove observations with at least one missing value, there are 122 subject
 nrow(psych_block %>% drop_na(.))
 psych_block2 <- psych_block %>%  drop_na(.)
 ```
+
+
+```{r}
+# save without missing data
+save(psych_block2, file = "./data/pysch2.RData")
+```
+
 
 ### B. Summary of variables
 
