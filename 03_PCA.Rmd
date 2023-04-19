@@ -1,10 +1,8 @@
 ---
 title: 'PCA: Principal Component Analysis'
 author: "Amy Song"
-date: "April 17, 2023"
-output:
-  html_document:
-    df_print: paged
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
 ---
 
 ```{r, message = F}
@@ -15,20 +13,20 @@ source_rmd = function(file, ...) {
   source(file = tmp_file, ...)
 }
 
-source_rmd("../00_manage_packages.Rmd")
+source_rmd("00_manage_packages.Rmd")
 ```
 ## Loading Data
 ```{r}
 # Cortisol Data
-load('../data/cortisol.RData')
+load('data/cortisol.RData')
 # fMRI Data
-load('../data/fmri.Rdata')
+load('data/fmri.Rdata')
 # Working Memory Data
-load('../data/working.Rdata')
+load('data/working.Rdata')
 # demographics Data
-load('../data/demographics.Rdata')
+load('data/demographics.Rdata')
 # psych data
-load('../data/pysch.Rdata')
+load('data/pysch.Rdata')
 ```
 
 # Background: PCA and Scree Plot

@@ -5,7 +5,13 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
-```{r}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/taebinkim/Desktop/UNC/STOR 765/STOR765_Spring2023_TeamDS")
+getwd()
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
 source_rmd = function(file, ...) {
   tmp_file = tempfile(fileext = ".R")
   on.exit(unlink(tmp_file), add = TRUE)
@@ -13,18 +19,48 @@ source_rmd = function(file, ...) {
   source(file = tmp_file, ...)
 }
 
-source_rmd("../00_manage_packages.Rmd")
+source_rmd("00_manage_packages.Rmd")
 ```
 
+Install the `r_jive` package.
 ```{r}
 devtools::install_github("taebinkim7/r_jive")
 library(ajive)
 ```
 
-Load saved Working Memory data.
+Load preprocessed data blocks.
 ```{r}
-load("RData/wm_df.Rdata")
+load("data/cortisol.RData")
+load("data/demographics.RData")
+load("data/fmri.RData")
+load("data/pysch.RData")
+load("data/working.RData")
 ```
+
+
+Redefine data blocks for the AJIVE analysis.
+```{r}
+cortisol = cortisol_wide
+demographics = demographics_block %>%
+  select(-AgeInYears) # only use age in months for AJIVE
+fmri = fmri_wide
+psych = psych_block
+working = working_wide
+```
+
+## Q1. 
+
+
+
+## Q2.
+
+
+
+## Q3.
+
+
+
+
 
 ```{r}
 # load cortisol data
