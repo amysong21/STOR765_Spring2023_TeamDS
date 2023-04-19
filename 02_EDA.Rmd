@@ -243,7 +243,8 @@ psych_block2 <- psych_block %>%  drop_na(.)
 
 ```{r}
 # save without missing data
-save(psych_block2, file = "./data/pysch2.RData")
+psych_block2 <- psych_block %>%  na.omit()
+# save(psych_block2, file = "./data/pysch2.RData")
 ```
 
 
