@@ -5,7 +5,7 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "/Users/taebinkim/Desktop/UNC/STOR 765/STOR765_Spring2023_TeamDS")
 getwd()
@@ -21,6 +21,7 @@ source_rmd = function(file, ...) {
 
 source_rmd("00_manage_packages.Rmd")
 ```
+## Setup
 
 Install the `r_jive` package.
 ```{r}
@@ -31,126 +32,115 @@ library(ajive)
 Load preprocessed data blocks.
 ```{r}
 load("data/cortisol.RData")
-load("data/demographics.RData")
 load("data/fmri.RData")
-load("data/pysch.RData")
 load("data/working.RData")
+load("data/demographics2.RData")
 ```
 
 
-Redefine data blocks for the AJIVE analysis.
+Set signal ranks based on the PC scree plots.
+```{r}
+cortisol_signal_rank <- 3
+fmri_signal_rank <- 5
+working_signal_rank <- 9
+demographics_signal_rank <- 4
+```
+
+Redefine data blocks for the AJIVE analyses.
 ```{r}
 cortisol = cortisol_wide
-demographics = demographics_block %>%
-  select(-AgeInYears) # only use age in months for AJIVE
 fmri = fmri_wide
-psych = psych_block
-working = working_wide
+working = working_wide %>%
+  rownames_to_column("SubjectID")
+demographics = demographics_block2 %>%
+  fastDummies::dummy_cols("Sex") %>%
+  select(-c(Sex, Sex_F, AgeInYears))
 ```
 
-## Q1. 
+Define a function for fitting an AJIVE model.
 
+* Usage
+```{r, eval=FALSE}
+fit_ajive(data_blocks, signal_ranks, n_wedin_samples = 100, n_rand_dir_samples = 100)
+```
 
+* Arguments
 
-## Q2.
+`data_blocks`: List of data blocks for AJIVE analysis
 
+`signal_ranks`: Predetermined signal ranks for the data blocks. The length should be the same as the number of data blocks.
 
+`n_wedin_samples`: Number of samples for obtaining the Wedin bound. 
 
-## Q3.
-
-
-
-
+`n_rand_dir_samples`: Number of random direction samples
 
 ```{r}
-# load cortisol data
-cortisol_df_raw <- readxl::read_excel("RData/cognit_stor765_data.xlsx",
-                                      sheet = "Cortisol_MRI_block1")
-# preprocess cortisol data
-cortisol_df <- cortisol_df_raw %>%
-  remove_rownames %>%
-  column_to_rownames(var = "StudyID")
+fit_ajive <- function(data_blocks,
+                      signal_ranks,
+                      n_wedin_samples = 100,
+                      n_rand_dir_samples = 100) {
+  # keep overlapping subjects across data blocks
+  merged_data_block <- Reduce(
+    function (...) { merge(..., all = FALSE) }, data_blocks)
+  common <- merged_data_block$SubjectID
+  inter_data_blocks <- sapply(
+    data_blocks,
+    function(x) as.matrix(x[x$SubjectID %in% common, ] %>% select(-1))
+  )
+  
+  # fit AJIVE
+  ajive <- ajive::ajive(inter_data_blocks,
+                        signal_ranks,
+                        n_wedin_samples = n_wedin_samples,
+                        n_rand_dir_samples = n_rand_dir_samples)
+  return(ajive)
+}
 ```
 
+## AJIVE Analyses
+
+* Q1. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (FMRI block) during stress test.
 ```{r}
-# merge cortisol data and working memory data
-merged_df <- merge(cortisol_df, wm_df, by = 0)
-merged_df <- merged_df %>%
-  remove_rownames %>%
-  column_to_rownames(var="Row.names")
-
-
-# split data
-cortisol_df_inter <- merged_df[, 1:ncol(cortisol_df)]
-wm_df_inter <- 
-  merged_df[, (ncol(cortisol_df)+1):(ncol(cortisol_df)+ncol(wm_df))]
+data_blocks_cortisol_fmri <- list(cortisol, fmri)
+ajive_cortisol_fmri <- fit_ajive(
+  data_blocks_cortisol_fmri,
+  c(cortisol_signal_rank, fmri_signal_rank)
+)
+cat("Joint rank:", ajive_cortisol_fmri$joint_rank)
 ```
 
+* Q2. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (working memory block) during working memory task.
 ```{r}
-cortisol_corr_matrix <- cor(cortisol_df_inter)
-cortisol_df_pca <- princomp(cortisol_corr_matrix)
-factoextra::fviz_eig(cortisol_df_pca, addlabels = TRUE)
-cortisol_pc_scores <- data.frame(cortisol_df_pca$scores[,1:3])
-GGally::ggpairs(cortisol_pc_scores)
+data_blocks_cortisol_working <- list(cortisol, working)
+ajive_cortisol_working <- fit_ajive(
+  data_blocks_cortisol_working,
+  c(cortisol_signal_rank, working_signal_rank)
+)
+cat("Joint rank:", ajive_cortisol_working$joint_rank)
 ```
 
-```{r}
-wm_corr_matrix <- cor(wm_df_inter)
-wm_df_pca <- princomp(wm_corr_matrix)
-factoextra::fviz_eig(wm_df_pca, addlabels = TRUE)
-wm_pc_scores <- data.frame(wm_df_pca$scores[,1:3])
-GGally::ggpairs(wm_pc_scores)
+* Q3. Repeat Q1 and Q2 with demographics block as the third block.
+```{r, eval=FALSE}
+data_blocks_cortisol_fmri_demographics <- list(cortisol, fmri, demographics)
+ajive_cortisol_fmri_demographics <- fit_ajive(
+  data_blocks_cortisol_fmri_demographics,
+  c(cortisol_signal_rank, fmri_signal_rank, demographics_signal_rank)
+)
+cat("Joint rank:", ajive_cortisol_fmri_demographics$joint_rank)
+
+data_blocks_cortisol_working_demographics <- list(cortisol,
+                                                  working,
+                                                  demographics)
+ajive_cortisol_working_demographics <- fit_ajive(
+  data_blocks_cortisol_working_demographics,
+  c(cortisol_signal_rank, working_signal_rank, demographics_signal_rank)
+)
+cat("Joint rank:", ajive_cortisol_working_demographics$joint_rank)
 ```
 
-```{r}
-data_blocks <- list(as.matrix(cortisol_df_inter), as.matrix(wm_df_inter))
 
-jive <- CJIVE::sjive(data_blocks, signal_ranks = c(3, 4), joint.rank = 2)
-```
 
-```{r}
-initial_signal_ranks <- c(3, 4) # set by looking at scree plots
-jive_results <- ajive::ajive(data_blocks, initial_signal_ranks, 
-                             n_wedin_samples = 100, n_rand_dir_samples = 100)
 
-# estimated joint rank
-jive_results$joint_rank
-```
 
-```{r}
-cortisol_joint_scores <- jive$joint_matrices[[1]]$u
-wm_joint_scores <- jive$joint_matrices[[2]]$u
 
-cortisol_joint <- as.data.frame(cortisol_joint_scores)
-wm_joint <- as.data.frame(wm_joint_scores)
 
-cortisol_joint %>%
-  mutate(rn = row_number()) %>% 
-  pivot_longer(cols = -rn) %>%
-  ggplot(aes(x = rn, y = value, color = name)) + 
-       geom_line()
-
-wm_joint %>%
-  mutate(rn = row_number()) %>% 
-  pivot_longer(cols = -rn) %>%
-  ggplot(aes(x = rn, y = value, color = name)) + 
-       geom_line()
-
-joint_1 <- as.data.frame(
-  cbind(cortisol_joint_scores[, 1], wm_joint_scores[, 1]))
-
-joint_1 %>%
-  mutate(rn = row_number()) %>% 
-  pivot_longer(cols = -rn) %>%
-  ggplot(aes(x = rn, y = value, color = name)) + 
-       geom_line()
-
-joint_2 <- as.data.frame(
-  cbind(cortisol_joint_scores[, 2], wm_joint_scores[, 2]))
-
-joint_2 %>%
-  mutate(rn = row_number()) %>% 
-  pivot_longer(cols = -rn) %>%
-  ggplot(aes(x = rn, y = value, color = name)) + 
-       geom_line()
-```

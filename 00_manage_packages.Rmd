@@ -27,5 +27,6 @@ p_load(devtools,
        factoextra,
        reshape2,
        visda,
-       ggfortify)
+       ggfortify,
+       fastDummies)
 ```
