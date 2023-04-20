@@ -43,7 +43,7 @@ Set signal ranks based on the PC scree plots.
 cortisol_signal_rank <- 3
 fmri_signal_rank <- 5
 working_signal_rank <- 9
-demographics_signal_rank <- 4
+demographics_signal_rank <- 3
 ```
 
 Redefine data blocks for the AJIVE analyses.
@@ -99,6 +99,8 @@ fit_ajive <- function(data_blocks,
 
 ## AJIVE Analyses
 
+### Cortisol and FMRI
+
 * Q1. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (FMRI block) during stress test.
 ```{r}
 data_blocks_cortisol_fmri <- list(cortisol, fmri)
@@ -106,8 +108,14 @@ ajive_cortisol_fmri <- fit_ajive(
   data_blocks_cortisol_fmri,
   c(cortisol_signal_rank, fmri_signal_rank)
 )
+```
+
+#### Joint rank
+```{r}
 cat("Joint rank:", ajive_cortisol_fmri$joint_rank)
 ```
+
+### Cortisol and Working Memory
 
 * Q2. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (working memory block) during working memory task.
 ```{r}
@@ -116,8 +124,14 @@ ajive_cortisol_working <- fit_ajive(
   data_blocks_cortisol_working,
   c(cortisol_signal_rank, working_signal_rank)
 )
+```
+
+#### Joint rank
+```{r}
 cat("Joint rank:", ajive_cortisol_working$joint_rank)
 ```
+
+### Demographics as the third block
 
 * Q3. Repeat Q1 and Q2 with demographics block as the third block.
 ```{r, eval=FALSE}
