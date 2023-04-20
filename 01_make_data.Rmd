@@ -76,7 +76,7 @@ summary(demographics_block)
 
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_1}
-save(demographics_block, file = "./data/demographics.RData")
+# save(demographics_block, file = "./data/demographics.RData")
 ```
 
 ## 2. Cortisol data
@@ -127,7 +127,7 @@ head(cortisol_long)
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_2}
 cortisol_wide <- cortisol_block
-save(cortisol_wide, cortisol_long, file = "./data/cortisol.RData")
+# save(cortisol_wide, cortisol_long, file = "./data/cortisol.RData")
 ```
 
 ## 3. FMRI data
@@ -186,7 +186,7 @@ summary(fmri_wide)
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_3}
 fmri_long <- fmri_block
-save(fmri_long, fmri_wide, file = "./data/fmri.RData")
+# save(fmri_long, fmri_wide, file = "./data/fmri.RData")
 ```
 
 ## 4. Psych Profile data
@@ -240,7 +240,7 @@ summary(psych_block[, 2:6])
 
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_4}
-save(psych_block, file = "./data/pysch.RData")
+# save(psych_block, file = "./data/pysch.RData")
 ```
 
 ## 5. Working memory data
@@ -300,16 +300,14 @@ Since there are 64 unique subjects and 8 unique ROIs with 2 status levels, we ca
 ```{r pivot_5}
 working_wide <- working_block %>% 
   pivot_wider(names_from = c("ROI", "Status"),
-              values_from = "Mean") %>% 
-  remove_rownames %>%
-  column_to_rownames(var="SubjectID")
+              values_from = "Mean") 
 head(working_wide, 5)
 ```
 
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_5}
 working_long <- working_block
-save(working_long, working_wide, file = "./data/working.RData")
+# save(working_long, working_wide, file = "./data/working.RData")
 ```
 
 ## 6. Autonomic data
@@ -352,5 +350,5 @@ summary(autonomic_block[, 2:10])
 
 After making the modifications mentioned above, we saved the updated data frame.
 ```{r save_6}
-save(autonomic_block, file = "./data/autonomic.RData")
+# save(autonomic_block, file = "./data/autonomic.RData")
 ```

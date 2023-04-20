@@ -51,8 +51,6 @@ twoNA <- which(apply(demographics_block, MARGIN = 1, function(x) sum(is.na(x))) 
 demographics_block[twoNA,]
 ```
 
-
-
 #### Exploring the Missing Data Points
 
 ```{r explore_demo1, warning=FALSE, message=FALSE, fig.align='center'}
@@ -104,8 +102,8 @@ demographics_block2 <- demographics_block %>% na.omit()
 * There seems to be a strong positive correlation between Age in years and Parent's puberty level.
 * Additionally, there is a high correlation between Own puberty level and Parent's puberty level.
 
-```{r corr1, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
-ggpairs(demographics_block, columns = c(2, 4:7), 
+```{r corr1, warning=FALSE, message=FALSE, fig.align='center', fig.width=9, fig.height=8}
+ggpairs(demographics_block2, columns = c(2, 4:7), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
 
@@ -254,12 +252,11 @@ psych_block2 <- psych_block %>%  na.omit()
 summary(psych_block2)
 ```
 
-
 ### C. Associations among variables
 
 * All the variables have a positive correlation except `STAIPost-Pre`.
 
-```{r corr4, warning=FALSE, message=FALSE, fig.align='center', fig.width=9}
+```{r corr4, warning=FALSE, message=FALSE, fig.align='center', fig.width=9, fig.height=7}
 ggpairs(psych_block2, columns = c(2:6), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
@@ -288,8 +285,8 @@ summary(working_wide)
 * Usually post-working memory has a positive correlation with each other, and a similar trend is found with pre-working memory
 * We find some post- and pre- working memory to be negatively correlated.
 
-```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30, fig.height=20}
-pairs_plot <- ggpairs(working_wide, columns = c(2:16), 
+```{r b5_scatter, warning=FALSE, message=FALSE, fig.align='center', fig.width=30, fig.height=22}
+pairs_plot <- ggpairs(working_wide, columns = c(2:17), 
         title = "Scatterplot matrix (pairs plots) of variables")
 
 pairs_plot
@@ -334,7 +331,7 @@ summary(autonomic_block)
 * The 3 measurements of Heart Rate Variability (HRV) is highly correlated with each other.
 * All 6 measurements of SAA are highly correlated with each other.
 
-```{r scatter6, warning=FALSE, message=FALSE, fig.align='center', fig.width=10}
+```{r scatter6, warning=FALSE, message=FALSE, fig.align='center', fig.width=10, fig.height=8}
 ggpairs(autonomic_block, columns = c(2:10), 
         title = "Scatterplot matrix (pairs plots) of variables")
 ```
