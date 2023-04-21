@@ -5,12 +5,6 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "/Users/taebinkim/Desktop/UNC/STOR 765/STOR765_Spring2023_TeamDS")
-getwd()
-```
-
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 source_rmd = function(file, ...) {
   tmp_file = tempfile(fileext = ".R")
@@ -50,8 +44,7 @@ Redefine data blocks for the AJIVE analyses.
 ```{r}
 cortisol = cortisol_wide
 fmri = fmri_wide
-working = working_wide %>%
-  rownames_to_column("SubjectID")
+working = working_wide
 demographics = demographics_block2 %>%
   fastDummies::dummy_cols("Sex") %>%
   select(-c(Sex, Sex_F, AgeInYears))
@@ -115,6 +108,21 @@ ajive_cortisol_fmri <- fit_ajive(
 cat("Joint rank:", ajive_cortisol_fmri$joint_rank)
 ```
 
+#### Common Normalized Score
+```{r}
+ajive_cortisol_fmri$joint_scores
+```
+
+#### Cortisol joint loadings
+```{r}
+ajive_cortisol_fmri$block_decomps[[1]]$joint$v
+```
+
+#### fMRI joint loadings
+```{r}
+ajive_cortisol_fmri$block_decomps[[2]]$joint$v
+```
+
 ### Cortisol and Working Memory
 
 * Q2. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (working memory block) during working memory task.
@@ -133,16 +141,17 @@ cat("Joint rank:", ajive_cortisol_working$joint_rank)
 
 #### Common Normalized Score
 ```{r}
-cat("Common norm:", ajive_cortisol_working$joint_scores)
+ajive_cortisol_working$joint_scores
 ```
 
-#### Cortisol joint
+#### Cortisol joint loadings
 ```{r}
-ajive_cortisol_working$block_decomps[[1]]$joint
+ajive_cortisol_working$block_decomps[[1]]$joint$v
 ```
 
+#### Working Memory joint loadings
 ```{r}
-ajive_cortisol_working$block_decomps[[1]]$individual
+ajive_cortisol_working$block_decomps[[2]]$joint$v
 ```
 
 ### Demographics as the third block
@@ -161,6 +170,27 @@ ajive_cortisol_fmri_demographics <- fit_ajive(
 cat("Joint rank:", ajive_cortisol_fmri_demographics$joint_rank)
 ```
 
+#### Common Normalized Score
+```{r}
+ajive_cortisol_fmri_demographics$joint_scores
+```
+
+#### Cortisol joint loadings
+```{r}
+ajive_cortisol_fmri_demographics$block_decomps[[1]]$joint$v
+```
+
+#### fMRI joint loadings
+```{r}
+ajive_cortisol_fmri_demographics$block_decomps[[2]]$joint$v
+```
+
+
+#### Demographics joint loadings
+```{r}
+ajive_cortisol_fmri_demographics$block_decomps[[3]]$joint$v
+```
+
 ```{r}
 data_blocks_cortisol_working_demographics <- list(cortisol,
                                                   working,
@@ -176,9 +206,26 @@ ajive_cortisol_working_demographics <- fit_ajive(
 cat("Joint rank:", ajive_cortisol_working_demographics$joint_rank)
 ```
 
+#### Common Normalized Score
+```{r}
+ajive_cortisol_working_demographics$joint_scores
+```
+
+#### Cortisol joint loadings
+```{r}
+ajive_cortisol_working_demographics$block_decomps[[1]]$joint$v
+```
+
+#### Working Memory joint loadings
+```{r}
+ajive_cortisol_working_demographics$block_decomps[[2]]$joint$v
+```
 
 
-
+#### Demographics joint loadings
+```{r}
+ajive_cortisol_working_demographics$block_decomps[[3]]$joint$v
+```
 
 
 
