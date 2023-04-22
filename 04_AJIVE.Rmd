@@ -37,7 +37,7 @@ Set signal ranks based on the PC scree plots.
 cortisol_signal_rank <- 3
 fmri_signal_rank <- 5
 working_signal_rank <- 9
-demographics_signal_rank <- 3
+demographics_signal_rank <- 4
 ```
 
 Redefine data blocks for the AJIVE analyses.
@@ -63,9 +63,9 @@ fit_ajive(data_blocks, signal_ranks, n_wedin_samples = 100, n_rand_dir_samples =
 
 `signal_ranks`: Predetermined signal ranks for the data blocks. The length should be the same as the number of data blocks.
 
-`n_wedin_samples`: Number of samples for obtaining the Wedin bound. 
+`n_wedin_samples`: Number of samples for obtaining the Wedin bound. Default is 100.
 
-`n_rand_dir_samples`: Number of random direction samples
+`n_rand_dir_samples`: Number of random direction samples. Default is 100.
 
 ```{r}
 fit_ajive <- function(data_blocks,
