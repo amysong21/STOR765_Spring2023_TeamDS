@@ -131,11 +131,7 @@ cat("Joint rank:", ajive_cortisol_fmri$joint_rank)
 ```{r}
 cns <- ajive_cortisol_fmri$joint_scores
 cns_df <- data.frame(cns=cns)
-```
-
-```{r}
 cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug() + ggtitle("Common normalized scores") + theme_bw()
-geom_jitter
 ```
 
 ```{r}
@@ -185,25 +181,37 @@ ajive_cortisol_working <- fit_ajive(
 )
 ```
 
+```{r}
+cns <- ajive_cortisol_working$joint_scores
+cns_df <- data.frame(cns=cns)
+cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug() + ggtitle("Common normalized scores") + theme_bw()
+```
+
+```{r}
+cort_joint_loads = t(t(ajive_cortisol_working$joint_scores) %*% merged_cortisol_working[[1]])
+cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads$block = "cortisol"
+
+work_joint_loads = t(t(ajive_cortisol_working$joint_scores) %*% merged_cortisol_working[[2]])
+work_joint_loads = data.frame(loading=work_joint_loads) %>% rownames_to_column("variable")
+work_joint_loads$block = "fMRI"
+
+cort_work_joint_loads = rbind(cort_joint_loads, work_joint_loads)
+cort_work_joint_loads$variable = factor(cort_work_joint_loads$variable, levels=cort_work_joint_loads$variable)
+cort_work_joint_loads
+
+
+cort_work_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
+  geom_col(aes(fill=block)) + coord_flip() +
+  ggtitle("Cortisol and Working Memory Joint Loadings")
+```
+
 #### Joint rank
 ```{r}
 cat("Joint rank:", ajive_cortisol_working$joint_rank)
 ```
 
-#### Common Normalized Score
-```{r}
-ajive_cortisol_working$joint_scores
-```
 
-#### Cortisol joint loadings
-```{r}
-ajive_cortisol_working$block_decomps[[1]]$joint$v
-```
-
-#### Working Memory joint loadings
-```{r}
-ajive_cortisol_working$block_decomps[[2]]$joint$v
-```
 
 ### Demographics as the third block
 
@@ -222,35 +230,42 @@ ajive_cortisol_fmri_demographics <- fit_ajive(
 cat("Joint rank:", ajive_cortisol_fmri_demographics$joint_rank)
 ```
 
+
 #### Common Normalized Score
 ```{r}
-ajive_cortisol_fmri_demographics$joint_scores
+cns <- ajive_cortisol_fmri_demographics$joint_scores
+cns_df <- data.frame(cns=cns)
+cns_df$SexM <- factor(merged_cortisol_fmri_demographics[[3]][,5])
+cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug(aes(color=SexM)) + ggtitle("Common normalized scores") + theme_bw() +
+  geom_density(aes(group=SexM, fill=SexM, color=SexM), alpha=.3)
 ```
 
-#### Cortisol joint loadings
+We see that the scores are bimodal, but not owing to sex.
+
+#### Joint loadings
 ```{r}
-ajive_cortisol_fmri_demographics$block_decomps[[1]]$joint$v
+cort_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[1]])
+cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads$block = "cortisol"
+
+fmri_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[2]])
+fmri_joint_loads = data.frame(loading=fmri_joint_loads) %>% rownames_to_column("variable")
+fmri_joint_loads$block = "fMRI"
+
+demo_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[3]])
+demo_joint_loads = data.frame(loading=demo_joint_loads) %>% rownames_to_column("variable")
+demo_joint_loads$block = "demo"
+
+cort_fmri_demo_joint_loads = rbind(cort_joint_loads, fmri_joint_loads, demo_joint_loads)
+cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable, levels=cort_fmri_demo_joint_loads$variable)
+cort_fmri_demo_joint_loads
+
+cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
+  geom_col(aes(fill=block)) + coord_flip() +
+  ggtitle("Cortisol, fMRI, and Demographics Joint Loadings")
 ```
 
-#### fMRI joint loadings
-```{r}
-ajive_cortisol_fmri_demographics$block_decomps[[2]]$joint$v
-```
-
-
-#### Demographics joint loadings
-```{r}
-ajive_cortisol_fmri_demographics$block_decomps[[3]]$joint$v
-```
-
-
-```{r}
-merged_cortisol_fmri_demographics <- merge_data(list(cortisol, fmri, demographics))
-ajive_cortisol_fmri_demographics <- fit_ajive(
-  merged_cortisol_fmri_demographics,
-  c(cortisol_signal_rank, fmri_signal_rank, demographics_signal_rank)
-)
-```
+### Cortisol, Working Memory, and Demographics
 
 ```{r}
 merged_cortisol_working_demographics <- merge_data(list(cortisol, working, demographics))
@@ -267,24 +282,34 @@ cat("Joint rank:", ajive_cortisol_working_demographics$joint_rank)
 
 #### Common Normalized Score
 ```{r}
-ajive_cortisol_working_demographics$joint_scores
+cns <- ajive_cortisol_working_demographics$joint_scores
+cns_df <- data.frame(cns=cns)
+cns_df$SexM <- factor(merged_cortisol_working_demographics[[3]][,5])
+cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug(aes(color=SexM)) + ggtitle("Common normalized scores") + theme_bw() +
+  geom_density(aes(group=SexM, fill=SexM, color=SexM), alpha=.3)
 ```
 
-#### Cortisol joint loadings
+
+#### Joint loadings
 ```{r}
-ajive_cortisol_working_demographics$block_decomps[[1]]$joint$v
+cort_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[1]])
+cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads$block = "cortisol"
+
+work_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[2]])
+work_joint_loads = data.frame(loading=work_joint_loads) %>% rownames_to_column("variable")
+work_joint_loads$block = "fMRI"
+
+demo_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[3]])
+demo_joint_loads = data.frame(loading=demo_joint_loads) %>% rownames_to_column("variable")
+demo_joint_loads$block = "demo"
+
+cort_fmri_demo_joint_loads = rbind(cort_joint_loads, work_joint_loads, demo_joint_loads)
+cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable, levels=cort_fmri_demo_joint_loads$variable)
+cort_fmri_demo_joint_loads
+
+cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
+  geom_col(aes(fill=block)) + coord_flip() +
+  ggtitle("Cortisol, Working Memory, and Demographics Joint Loadings")
 ```
-
-#### Working Memory joint loadings
-```{r}
-ajive_cortisol_working_demographics$block_decomps[[2]]$joint$v
-```
-
-
-#### Demographics joint loadings
-```{r}
-ajive_cortisol_working_demographics$block_decomps[[3]]$joint$v
-```
-
-
 
