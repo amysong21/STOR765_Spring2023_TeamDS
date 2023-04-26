@@ -1,8 +1,10 @@
 ---
 title: "AJIVE Analysis"
-author: "Taebin Kim"
+author: "Taebin Kim & Thomas H. Keefe"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
@@ -68,21 +70,33 @@ fit_ajive(data_blocks, signal_ranks, n_wedin_samples = 100, n_rand_dir_samples =
 `n_rand_dir_samples`: Number of random direction samples. Default is 100.
 
 ```{r}
-fit_ajive <- function(data_blocks,
+merge_data <- function(data_blocks){
+  merged_data_block <- Reduce(
+      function (...){
+          merge(..., all = FALSE)
+      }, 
+      data_blocks
+  )
+  common <- merged_data_block$SubjectID
+  
+  inter_data_blocks <- sapply(
+      data_blocks,
+      function(x){
+          as.matrix(x[x$SubjectID %in% common, ] %>% select(-1))
+      }
+  )
+  return(inter_data_blocks)
+}
+```
+
+
+```{r}
+fit_ajive <- function(merged_data_blocks,
                       signal_ranks,
                       n_wedin_samples = 100,
                       n_rand_dir_samples = 100) {
-  # keep overlapping subjects across data blocks
-  merged_data_block <- Reduce(
-    function (...) { merge(..., all = FALSE) }, data_blocks)
-  common <- merged_data_block$SubjectID
-  inter_data_blocks <- sapply(
-    data_blocks,
-    function(x) as.matrix(x[x$SubjectID %in% common, ] %>% select(-1))
-  )
   
-  # fit AJIVE
-  ajive <- ajive::ajive(inter_data_blocks,
+  ajive <- ajive::ajive(merged_data_blocks,
                         signal_ranks,
                         n_wedin_samples = n_wedin_samples,
                         n_rand_dir_samples = n_rand_dir_samples)
@@ -95,11 +109,16 @@ fit_ajive <- function(data_blocks,
 ### Cortisol and FMRI
 
 * Q1. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (FMRI block) during stress test.
+
+
 ```{r}
-data_blocks_cortisol_fmri <- list(cortisol, fmri)
-ajive_cortisol_fmri <- fit_ajive(
-  data_blocks_cortisol_fmri,
-  c(cortisol_signal_rank, fmri_signal_rank)
+merged_cortisol_fmri <- merge_data(list(cortisol, fmri))
+```
+
+```{r}
+ajive_cortisol_fmri <- ajive(
+  merged_cortisol_fmri,
+  c(cortisol_signal_rank, fmri_signal_rank),
 )
 ```
 
@@ -110,27 +129,59 @@ cat("Joint rank:", ajive_cortisol_fmri$joint_rank)
 
 #### Common Normalized Score
 ```{r}
-ajive_cortisol_fmri$joint_scores
+cns <- ajive_cortisol_fmri$joint_scores
+cns_df <- data.frame(cns=cns)
 ```
 
-#### Cortisol joint loadings
 ```{r}
-ajive_cortisol_fmri$block_decomps[[1]]$joint$v
+cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug() + ggtitle("Common normalized scores") + theme_bw()
+geom_jitter
 ```
 
-#### fMRI joint loadings
 ```{r}
-ajive_cortisol_fmri$block_decomps[[2]]$joint$v
+scores_cortisol <- as_tibble(x=cbind(ajive_cortisol_fmri$block_decomps[[1]][['joint']][['u']],
+                                   ajive_cortisol_fmri$block_decomps[[1]][['individual']][['u']])) %>% 
+                    rename(joint=V1, indiv=V2)
+                    
+             
+ggplot(scores_cortisol) + 
+    geom_point(aes(x=indiv, y=joint)) + 
+    geom_hline(yintercept=0) + 
+    geom_vline(xintercept=0) +
+    theme_bw() +
+    ggtitle("The cortisol individual scores are correlated with the joint scores.")
 ```
+
+
+```{r}
+cort_joint_loads = t(t(ajive_cortisol_fmri$joint_scores) %*% merged_cortisol_fmri[[1]])
+cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads$block = "cortisol"
+
+fmri_joint_loads = t(t(ajive_cortisol_fmri$joint_scores) %*% merged_cortisol_fmri[[2]])
+fmri_joint_loads = data.frame(loading=fmri_joint_loads) %>% rownames_to_column("variable")
+fmri_joint_loads$block = "fMRI"
+
+cort_fmri_joint_loads = rbind(cort_joint_loads, fmri_joint_loads)
+cort_fmri_joint_loads$variable = factor(cort_fmri_joint_loads$variable, levels=cort_fmri_joint_loads$variable)
+cort_fmri_joint_loads
+```
+
+```{r}
+cort_fmri_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
+  geom_col(aes(fill=block)) + coord_flip() +
+  ggtitle("Cortisol and fMRI Joint Loadings")
+```
+
 
 ### Cortisol and Working Memory
 
 * Q2. Investigate relationship between stress response profile (cortisol timeseries block) and brain region response (working memory block) during working memory task.
 ```{r}
-data_blocks_cortisol_working <- list(cortisol, working)
+merged_cortisol_working <- merge_data(list(cortisol, working))
 ajive_cortisol_working <- fit_ajive(
-  data_blocks_cortisol_working,
-  c(cortisol_signal_rank, working_signal_rank)
+  merged_cortisol_working,
+  c(cortisol_signal_rank, working_signal_rank),
 )
 ```
 
@@ -157,10 +208,11 @@ ajive_cortisol_working$block_decomps[[2]]$joint$v
 ### Demographics as the third block
 
 * Q3. Repeat Q1 and Q2 with demographics block as the third block.
+
 ```{r}
-data_blocks_cortisol_fmri_demographics <- list(cortisol, fmri, demographics)
+merged_cortisol_fmri_demographics <- merge_data(list(cortisol, fmri, demographics))
 ajive_cortisol_fmri_demographics <- fit_ajive(
-  data_blocks_cortisol_fmri_demographics,
+  merged_cortisol_fmri_demographics,
   c(cortisol_signal_rank, fmri_signal_rank, demographics_signal_rank)
 )
 ```
@@ -191,12 +243,19 @@ ajive_cortisol_fmri_demographics$block_decomps[[2]]$joint$v
 ajive_cortisol_fmri_demographics$block_decomps[[3]]$joint$v
 ```
 
+
 ```{r}
-data_blocks_cortisol_working_demographics <- list(cortisol,
-                                                  working,
-                                                  demographics)
+merged_cortisol_fmri_demographics <- merge_data(list(cortisol, fmri, demographics))
+ajive_cortisol_fmri_demographics <- fit_ajive(
+  merged_cortisol_fmri_demographics,
+  c(cortisol_signal_rank, fmri_signal_rank, demographics_signal_rank)
+)
+```
+
+```{r}
+merged_cortisol_working_demographics <- merge_data(list(cortisol, working, demographics))
 ajive_cortisol_working_demographics <- fit_ajive(
-  data_blocks_cortisol_working_demographics,
+  merged_cortisol_working_demographics,
   c(cortisol_signal_rank, working_signal_rank, demographics_signal_rank)
 )
 ```
