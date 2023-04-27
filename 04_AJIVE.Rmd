@@ -165,7 +165,7 @@ cort_fmri_joint_loads
 
 ```{r}
 cort_fmri_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
-  geom_col(aes(fill=block)) + coord_flip() +
+  geom_col(aes(fill=block)) + coord_flip() + theme_bw() +
   ggtitle("Cortisol and fMRI Joint Loadings")
 ```
 
@@ -194,7 +194,7 @@ cort_joint_loads$block = "cortisol"
 
 work_joint_loads = t(t(ajive_cortisol_working$joint_scores) %*% merged_cortisol_working[[2]])
 work_joint_loads = data.frame(loading=work_joint_loads) %>% rownames_to_column("variable")
-work_joint_loads$block = "fMRI"
+work_joint_loads$block = "working memory"
 
 cort_work_joint_loads = rbind(cort_joint_loads, work_joint_loads)
 cort_work_joint_loads$variable = factor(cort_work_joint_loads$variable, levels=cort_work_joint_loads$variable)
@@ -202,7 +202,7 @@ cort_work_joint_loads
 
 
 cort_work_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
-  geom_col(aes(fill=block)) + coord_flip() +
+  geom_col(aes(fill=block)) + coord_flip() + theme_bw() + 
   ggtitle("Cortisol and Working Memory Joint Loadings")
 ```
 
@@ -309,7 +309,7 @@ cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable
 cort_fmri_demo_joint_loads
 
 cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
-  geom_col(aes(fill=block)) + coord_flip() +
+  geom_col(aes(fill=block)) + coord_flip() + theme_bw() +
   ggtitle("Cortisol, Working Memory, and Demographics Joint Loadings")
 ```
 
