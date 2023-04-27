@@ -41,9 +41,7 @@ In PCA, the proportion of variance explained is used to measure how much the sel
 
 *Figure 7* displays the scree plot of PCA performed on the cortisol data block. The bars on the plot depict the percentage of variance explained by each of the principal components in the cortisol data block. The gray line depicts the cumulative percentage of variance explained by the principal components. As shown in the scree plot, the first three principal components explain about 95.5% of the variation in the data. Using this, it is decided to use 3 principal components for this data block. 
 
-In addition to the proportion of variance explained by each principal component, loadings and scores can be also discussed after performing PCA. 
-The bi-plot visualizes the loadings and scores for selected two principal components. *Figure 8* displays the bi-plot of PCA on cortisol data block. The points on the plot depicts the score of each observations in the first and second principal component, and the red arrows are the loading vectors. 
-
+In addition to the proportion of variance explained by each principal component, loading vectors and scores can also be visualized. The loading vector, $\phi_i = [\phi_{1, i},\phi_{2, i}, \cdots \phi_{p, i}], i = 1, \cdots, p$, for each principal components defines a direction in feature space along with the data vary the most. The scores, $z_{1, i}, \cdots z_{n, i}, i = 1, \cdots, p$ for principal component $i$ are the values when the data with n observations are projected onto the direction of loading vector. The bi-plot visualizes the loading vectors and scores for two selected principal components. *Figure 8* displays the bi-plot of PCA on the cortisol data block. The points on the plot depict the score of each observation from the first and second principal components, and the red arrows are the loading vector for each variable. 
 
 
 # PCA and Scree-Plot on data blocks
@@ -151,7 +149,7 @@ wm_pca <- prcomp(working_wide[,2:17])
 cumulated.var <- get_eig(wm_pca)$cumulative.variance.percent[1:10]
 cumulated.var.labs <- paste(round(cumulated.var,1),'%')
 cumulated.var.labs[1] <- NA
-factoextra::fviz_eig(wm_pca, addlabels = T, title = "Scree Plot for Worming Memory")  + 
+factoextra::fviz_eig(wm_pca, addlabels = T, title = "Scree Plot for Working Memory")  + 
   geom_line(aes(y = cumulated.var), color = "lightslategrey") + 
   geom_point(aes(y = cumulated.var), color = "lightslategrey") +
   geom_text(aes(label = cumulated.var.labs, y = cumulated.var + 5), color = "lightslategrey")
