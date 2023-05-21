@@ -147,17 +147,23 @@ ggplot(scores_cortisol) +
     theme_bw() +
     ggtitle("The cortisol individual scores are correlated with the joint scores.")
 ```
-
+```{r}
+get_loadings <- function(scores, datablock){
+  loadings <- t(t(scores) %*% datablock)  # Project scores onto datablock
+  loadings <- loadings / sqrt(sum(loadings^2))  # Normalize the loadings vector
+  loadings_df <- data.frame(loading=loadings) %>% rownames_to_column("variable")
+  return(loadings_df)
+}
+```
 
 ```{r}
-cort_joint_loads = t(t(ajive_cortisol_fmri$joint_scores) %*% merged_cortisol_fmri[[1]])
-cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads = get_loadings(ajive_cortisol_fmri$joint_scores, merged_cortisol_fmri[[1]])
 cort_joint_loads$block = "cortisol"
 
-fmri_joint_loads = t(t(ajive_cortisol_fmri$joint_scores) %*% merged_cortisol_fmri[[2]])
-fmri_joint_loads = data.frame(loading=fmri_joint_loads) %>% rownames_to_column("variable")
+fmri_joint_loads = get_loadings(ajive_cortisol_fmri$joint_scores, merged_cortisol_fmri[[2]])
 fmri_joint_loads$block = "fMRI"
 
+# Concatenate
 cort_fmri_joint_loads = rbind(cort_joint_loads, fmri_joint_loads)
 cort_fmri_joint_loads$variable = factor(cort_fmri_joint_loads$variable, levels=cort_fmri_joint_loads$variable)
 cort_fmri_joint_loads
@@ -188,19 +194,18 @@ cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug() + ggtitle("Common no
 ```
 
 ```{r}
-cort_joint_loads = t(t(ajive_cortisol_working$joint_scores) %*% merged_cortisol_working[[1]])
-cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads = get_loadings(ajive_cortisol_working$joint_scores, merged_cortisol_working[[1]])
 cort_joint_loads$block = "cortisol"
 
-work_joint_loads = t(t(ajive_cortisol_working$joint_scores) %*% merged_cortisol_working[[2]])
-work_joint_loads = data.frame(loading=work_joint_loads) %>% rownames_to_column("variable")
+work_joint_loads = get_loadings(ajive_cortisol_working$joint_scores, merged_cortisol_working[[2]])
 work_joint_loads$block = "working memory"
 
+# Concatenate
 cort_work_joint_loads = rbind(cort_joint_loads, work_joint_loads)
 cort_work_joint_loads$variable = factor(cort_work_joint_loads$variable, levels=cort_work_joint_loads$variable)
 cort_work_joint_loads
 
-
+# Plot
 cort_work_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
   geom_col(aes(fill=block)) + coord_flip() + theme_bw() + 
   ggtitle("Cortisol and Working Memory Joint Loadings")
@@ -244,22 +249,21 @@ We see that the scores are bimodal, but not owing to sex.
 
 #### Joint loadings
 ```{r}
-cort_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[1]])
-cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads = get_loadings(ajive_cortisol_fmri_demographics$joint_scores, merged_cortisol_fmri_demographics[[1]])
 cort_joint_loads$block = "cortisol"
 
-fmri_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[2]])
-fmri_joint_loads = data.frame(loading=fmri_joint_loads) %>% rownames_to_column("variable")
+fmri_joint_loads = get_loadings(ajive_cortisol_fmri_demographics$joint_scores, merged_cortisol_fmri_demographics[[2]])
 fmri_joint_loads$block = "fMRI"
 
-demo_joint_loads = t(t(ajive_cortisol_fmri_demographics$joint_scores) %*% merged_cortisol_fmri_demographics[[3]])
-demo_joint_loads = data.frame(loading=demo_joint_loads) %>% rownames_to_column("variable")
+demo_joint_loads = get_loadings(ajive_cortisol_fmri_demographics$joint_scores, merged_cortisol_fmri_demographics[[3]])
 demo_joint_loads$block = "demo"
 
+# Concatenate
 cort_fmri_demo_joint_loads = rbind(cort_joint_loads, fmri_joint_loads, demo_joint_loads)
 cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable, levels=cort_fmri_demo_joint_loads$variable)
 cort_fmri_demo_joint_loads
 
+# Plot
 cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
   geom_col(aes(fill=block)) + coord_flip() + theme_bw() + 
   ggtitle("Cortisol, fMRI, and Demographics Joint Loadings")
@@ -280,7 +284,7 @@ ajive_cortisol_working_demographics <- fit_ajive(
 cat("Joint rank:", ajive_cortisol_working_demographics$joint_rank)
 ```
 
-#### Common Normalized Score
+#### Common Normalized Scores
 ```{r}
 cns <- ajive_cortisol_working_demographics$joint_scores
 cns_df <- data.frame(cns=cns)
@@ -292,21 +296,18 @@ cns_df %>% ggplot(aes(x=cns)) + geom_density() + geom_rug(aes(color=SexM)) + ggt
 
 #### Joint loadings
 ```{r}
-cort_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[1]])
-cort_joint_loads = data.frame(loading=cort_joint_loads) %>% rownames_to_column("variable")
+cort_joint_loads = get_loadings(ajive_cortisol_working_demographics$joint_scores, merged_cortisol_working_demographics[[1]])
 cort_joint_loads$block = "cortisol"
 
-work_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[2]])
-work_joint_loads = data.frame(loading=work_joint_loads) %>% rownames_to_column("variable")
+work_joint_loads = get_loadings(ajive_cortisol_working_demographics$joint_scores, merged_cortisol_working_demographics[[2]])
 work_joint_loads$block = "working memory"
 
-demo_joint_loads = t(t(ajive_cortisol_working_demographics$joint_scores) %*% merged_cortisol_working_demographics[[3]])
-demo_joint_loads = data.frame(loading=demo_joint_loads) %>% rownames_to_column("variable")
+demo_joint_loads = get_loadings(ajive_cortisol_working_demographics$joint_scores, merged_cortisol_working_demographics[[3]])
 demo_joint_loads$block = "demo"
 
+# Concatenate
 cort_fmri_demo_joint_loads = rbind(cort_joint_loads, work_joint_loads, demo_joint_loads)
 cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable, levels=cort_fmri_demo_joint_loads$variable)
-cort_fmri_demo_joint_loads
 
 cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
   geom_col(aes(fill=block)) + coord_flip() + theme_bw() +
