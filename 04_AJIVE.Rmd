@@ -311,6 +311,6 @@ cort_fmri_demo_joint_loads$variable = factor(cort_fmri_demo_joint_loads$variable
 
 cort_fmri_demo_joint_loads %>% ggplot(aes(x=variable, y=loading)) + 
   geom_col(aes(fill=block)) + coord_flip() + theme_bw() +
-  ggtitle("Cortisol, Working Memory, and Demographics Joint Loadings")
+  ggtitle("Cortisol, Working Memory, \nand Demographics Joint Loadings")
 ```
 
